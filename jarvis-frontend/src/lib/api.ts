@@ -28,11 +28,13 @@ export function connectEvents(onEvent: (event: JarvisEvent) => void, onStatus: (
 }
 
 export async function sendText(text: string, speak = true) {
-  await fetch(`${API_URL}/api/input`, {
+  const response = await fetch(`${API_URL}/api/input`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, speak })
   });
+  if (!response.ok) throw new Error(await response.text());
+  return (await response.json()) as { status: string; reply: string };
 }
 
 export async function confirmAction(confirmation: Confirmation, approved: boolean) {
@@ -54,10 +56,12 @@ export async function stopVoice() {
 export async function transcribeVoice(blob: Blob) {
   const form = new FormData();
   form.append('file', blob, 'speech.wav');
-  await fetch(`${API_URL}/api/voice/transcribe`, {
+  const response = await fetch(`${API_URL}/api/voice/transcribe`, {
     method: 'POST',
     body: form
   });
+  if (!response.ok) throw new Error(await response.text());
+  return (await response.json()) as { status: string; text: string; reply: string };
 }
 
 export async function interrupt() {

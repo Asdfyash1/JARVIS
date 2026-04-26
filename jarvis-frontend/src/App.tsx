@@ -137,7 +137,19 @@ export default function App() {
     const text = input.trim();
     if (!text) return;
     setInput('');
-    await sendText(text, false);
+    setMessages((items) => [...items, { id: uid(), role: 'user', content: text }]);
+    try {
+      const result = await sendText(text, false);
+      if (result.reply) {
+        setMessages((items) => [...items, { id: uid(), role: 'assistant', content: result.reply }]);
+        speakInBrowser(result.reply);
+      }
+    } catch (error) {
+      setMessages((items) => [
+        ...items,
+        { id: uid(), role: 'system', content: `Chat failed: ${error instanceof Error ? error.message : 'unknown error'}` }
+      ]);
+    }
   }
 
   async function resolveConfirmation(approved: boolean) {
@@ -156,7 +168,22 @@ export default function App() {
       await context?.close();
       setRecording(false);
       const wav = encodeWav(recordingChunksRef.current, recordingSampleRateRef.current);
-      await transcribeVoice(wav);
+      try {
+        const result = await transcribeVoice(wav);
+        if (result.text) setMessages((items) => [...items, { id: uid(), role: 'user', content: result.text }]);
+        if (result.reply) {
+          setMessages((items) => [...items, { id: uid(), role: 'assistant', content: result.reply }]);
+          speakInBrowser(result.reply);
+        }
+        if (!result.text) {
+          setMessages((items) => [...items, { id: uid(), role: 'system', content: 'Mic heard no clear speech. Try again closer to the mic.' }]);
+        }
+      } catch (error) {
+        setMessages((items) => [
+          ...items,
+          { id: uid(), role: 'system', content: `Mic failed: ${error instanceof Error ? error.message : 'unknown error'}` }
+        ]);
+      }
       return;
     }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });

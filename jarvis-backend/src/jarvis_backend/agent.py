@@ -33,17 +33,31 @@ class JarvisAgent:
         self._tts = tts
         self._player = player
         self._actions = actions
-        self._current_response_task: asyncio.Task[None] | None = None
+        self._current_response_task: asyncio.Task[str] | None = None
 
     async def handle_user_text(self, text: str, speak: bool = True) -> None:
+        await self.handle_user_text_wait(text, speak=speak, emit=True, background=True)
+
+    async def handle_user_text_wait(
+        self,
+        text: str,
+        speak: bool = True,
+        emit: bool = True,
+        background: bool = False,
+    ) -> str:
         text = text.strip()
         if not text:
-            return
+            return ""
         await self.interrupt()
         await self._memory.append(ChatMessage(role=ChatRole.USER, content=text))
-        await self._event_bus.publish("user_input", {"text": text})
+        if emit:
+            await self._event_bus.publish("user_input", {"text": text})
         await self._state.set_state(AssistantState.THINKING)
-        self._current_response_task = asyncio.create_task(self._respond(text, speak=speak))
+        if background:
+            self._current_response_task = asyncio.create_task(self._respond(text, speak=speak, emit=emit))
+            return ""
+        self._current_response_task = asyncio.create_task(self._respond(text, speak=speak, emit=emit))
+        return await self._current_response_task
 
     async def interrupt(self) -> None:
         await self._player.stop()
@@ -54,23 +68,25 @@ class JarvisAgent:
             except asyncio.CancelledError:
                 pass
 
-    async def _respond(self, text: str, speak: bool) -> None:
+    async def _respond(self, text: str, speak: bool, emit: bool) -> str:
         chunks: list[str] = []
         try:
             history = await self._memory.history()
             async for delta in self._llm.stream(history, text):
                 chunks.append(delta)
-                await self._event_bus.publish("ai_response_delta", {"delta": delta})
+                if emit:
+                    await self._event_bus.publish("ai_response_delta", {"delta": delta})
             full_text = "".join(chunks).strip()
             decision = self._parser.parse(full_text)
             await self._memory.append(ChatMessage(role=ChatRole.ASSISTANT, content=decision.spoken_response))
-            await self._event_bus.publish(
-                "ai_response",
-                {
-                    "text": decision.spoken_response,
-                    "actions": [action.model_dump(mode="json") for action in decision.actions],
-                },
-            )
+            if emit:
+                await self._event_bus.publish(
+                    "ai_response",
+                    {
+                        "text": decision.spoken_response,
+                        "actions": [action.model_dump(mode="json") for action in decision.actions],
+                    },
+                )
             if speak and decision.spoken_response:
                 await self._state.set_state(AssistantState.SPEAKING)
                 audio_path = await self._tts.synthesize(decision.spoken_response)
@@ -78,10 +94,13 @@ class JarvisAgent:
             for action in decision.actions:
                 asyncio.create_task(self._actions.execute_after_confirmation(action))
             await self._state.set_state(AssistantState.IDLE)
+            return decision.spoken_response
         except asyncio.CancelledError:
             raise
         except Exception as exc:
             fallback = "NVIDIA response failed, but Jarvis is online. Please try again."
             await self._event_bus.publish("error", {"message": str(exc)})
-            await self._event_bus.publish("ai_response", {"text": fallback, "actions": []})
+            if emit:
+                await self._event_bus.publish("ai_response", {"text": fallback, "actions": []})
             await self._state.set_state(AssistantState.IDLE)
+            return fallback
