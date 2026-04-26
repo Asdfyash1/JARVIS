@@ -1,0 +1,62 @@
+server:
+  host: "127.0.0.1"
+  port: 8765
+  cors_origins:
+    - "http://localhost:5173"
+    - "http://127.0.0.1:5173"
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  frame_ms: 30
+  silence_timeout_ms: 1000
+  pre_speech_ms: 300
+  input_device: null
+  output_device: null
+
+vad:
+  engine: "silero"
+  threshold: 0.55
+  min_speech_ms: 180
+
+stt:
+  engine: "faster_whisper"
+  model_size: "small.en"
+  device: "auto"
+  compute_type: "auto"
+  beam_size: 1
+  language: "en"
+
+tts:
+  engine: "piper"
+  piper_binary: "piper"
+  voice_model: "./voices/en_US-lessac-medium.onnx"
+  speaker_id: null
+
+llm:
+  base_url: "https://integrate.api.nvidia.com/v1"
+  model: "meta/llama-3.1-70b-instruct"
+  api_key_env: "NVIDIA_API_KEY"
+  temperature: 0.3
+  max_tokens: 1024
+  system_prompt: |
+    You are Jarvis, a real-time voice assistant.
+    Reply conversationally for normal questions.
+    For actions, include a JSON object in an actions array with safe structured fields.
+    Never claim an action was executed; the backend asks confirmation and executes it.
+
+memory:
+  sqlite_path: "./data/jarvis.sqlite3"
+  max_history_messages: 24
+
+actions:
+  require_confirmation: true
+  linux_app_allowlist:
+    chrome: "google-chrome"
+    vscode: "code"
+    terminal: "gnome-terminal"
+  browser_debugger_address: "127.0.0.1:9222"
+  command_allowlist:
+    - "xdg-open"
+    - "wmctrl"
+    - "xdotool"

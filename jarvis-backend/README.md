@@ -1,0 +1,125 @@
+# Project Jarvis Backend
+
+Production-oriented async Python backend for a real-time voice AI assistant.
+
+## Implemented capabilities
+
+- FastAPI WebSocket/REST server.
+- Event-driven runtime with typed event bus.
+- Continuous voice pipeline: microphone frames → VAD → Faster-Whisper STT → LLM → local TTS → audio playback.
+- Local-first STT with Faster-Whisper as the primary speech engine.
+- Local TTS with Piper by default and Coqui as an optional local alternative.
+- NVIDIA API streaming chat completions for reasoning.
+- Persistent SQLite conversation memory.
+- Structured JSON action parsing.
+- Mandatory confirmation gate before actions.
+- System control executor with allowlisted apps/commands.
+- Browser automation by attaching Selenium to an existing Chrome/Edge remote debugging session.
+- WhatsApp Web message preparation flow that stops before sending.
+- Interrupt support while the assistant is speaking or thinking.
+
+## Quick start
+
+```bash
+cd jarvis-backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export NVIDIA_API_KEY="your-nvidia-api-key"
+python -m jarvis_backend --config config.yaml
+```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8765/health
+```
+
+## Local STT: Faster-Whisper
+
+Faster-Whisper is the main STT engine. It auto-tries CUDA first when `device: auto` and falls back to CPU int8 if CUDA initialization fails.
+
+Recommended config:
+
+```yaml
+stt:
+  engine: "faster_whisper"
+  model_size: "small.en"
+  device: "auto"
+  compute_type: "auto"
+```
+
+For stronger accuracy, use `medium.en` or `large-v3`. For low-latency CPU, use `base.en` or `small.en`.
+
+## Local TTS: Piper
+
+Install Piper and download a voice:
+
+```bash
+mkdir -p voices
+wget -O voices/en_US-lessac-medium.onnx \
+  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+wget -O voices/en_US-lessac-medium.onnx.json \
+  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+Set:
+
+```yaml
+tts:
+  engine: "piper"
+  piper_binary: "piper"
+  voice_model: "./voices/en_US-lessac-medium.onnx"
+```
+
+## Browser debugging setup
+
+Jarvis attaches to your existing browser session through remote debugging.
+
+Linux:
+
+```bash
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-browser-profile"
+```
+
+Windows:
+
+```powershell
+chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\jarvis-profile"
+```
+
+Then keep:
+
+```yaml
+actions:
+  browser_debugger_address: "127.0.0.1:9222"
+```
+
+## API
+
+- `POST /api/input` — text input.
+- `POST /api/voice/start` — start continuous microphone pipeline.
+- `POST /api/voice/stop` — stop microphone pipeline.
+- `POST /api/interrupt` — interrupt current speech/response.
+- `POST /api/action/confirm` — approve or deny pending actions.
+- `GET /health` — status.
+- `WS /ws` — realtime events.
+
+## Safety model
+
+The LLM only proposes structured actions. The backend parses, validates, asks for user confirmation, and then executes using allowlisted executors.
+
+Actions requiring confirmation include:
+
+- Opening apps.
+- Opening websites.
+- Searches.
+- Browser automation.
+- WhatsApp message preparation.
+- System commands.
+
+## Run tests
+
+```bash
+python -m pytest
+```
