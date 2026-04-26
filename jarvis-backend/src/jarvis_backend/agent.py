@@ -81,5 +81,7 @@ class JarvisAgent:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
+            fallback = "NVIDIA response failed, but Jarvis is online. Please try again."
             await self._event_bus.publish("error", {"message": str(exc)})
-            await self._state.set_state(AssistantState.ERROR, str(exc))
+            await self._event_bus.publish("ai_response", {"text": fallback, "actions": []})
+            await self._state.set_state(AssistantState.IDLE)

@@ -51,6 +51,7 @@ class LlmConfig(BaseModel):
     api_key_env: str = "NVIDIA_API_KEY"
     temperature: float = 0.3
     max_tokens: int = 1024
+    streaming: bool = False
     system_prompt: str
 
 

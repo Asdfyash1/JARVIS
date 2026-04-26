@@ -126,7 +126,7 @@ def build_app(settings: Settings) -> FastAPI:
         text = await runtime.stt.transcribe(segment)
         await runtime.event_bus.publish("transcription", {"text": text})
         if text:
-            await runtime.agent.handle_user_text(text, speak=True)
+            await runtime.agent.handle_user_text(text, speak=False)
         return {"status": "accepted", "text": text}
 
     @app.post("/api/interrupt")

@@ -16,6 +16,13 @@ class ActionParser:
         document = self._extract_json(text)
         if document is None:
             return ActionDecision(spoken_response=text.strip(), actions=[])
+        if "choices" in document:
+            content = (
+                document.get("choices", [{}])[0]
+                .get("message", {})
+                .get("content", "")
+            )
+            return ActionDecision(spoken_response=str(content).strip(), actions=[])
         spoken_response = str(document.get("spoken_response") or document.get("response") or "").strip()
         if not spoken_response:
             spoken_response = re.sub(JSON_BLOCK_RE, "", text).strip()

@@ -28,7 +28,7 @@ class NvidiaLlmClient:
             "messages": messages,
             "temperature": self._config.temperature,
             "max_tokens": self._config.max_tokens,
-            "stream": True,
+            "stream": self._config.streaming,
         }
         url = f"{self._config.base_url.rstrip('/')}/chat/completions"
         async with aiohttp.ClientSession() as session:
@@ -42,6 +42,12 @@ class NvidiaLlmClient:
                 json=payload,
             ) as response:
                 response.raise_for_status()
+                if not self._config.streaming:
+                    data = await response.json()
+                    content = data["choices"][0]["message"].get("content", "")
+                    if content:
+                        yield content
+                    return
                 async for raw_line in response.content:
                     line = raw_line.decode("utf-8", errors="replace").strip()
                     if not line or not line.startswith("data:"):

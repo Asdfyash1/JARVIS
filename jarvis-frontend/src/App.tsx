@@ -3,6 +3,7 @@ import { Mic, Power, Radio, Send, ShieldCheck, Square, Zap } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { confirmAction, connectEvents, interrupt, sendText, startVoice, stopVoice, transcribeVoice } from './lib/api';
 import type { ChatMessage, Confirmation, JarvisEvent, JarvisState } from './lib/types';
+import hudImage from './assets/jarvis-hud.png';
 import './styles/app.css';
 
 const stateCopy: Record<JarvisState, string> = {
@@ -136,7 +137,7 @@ export default function App() {
     const text = input.trim();
     if (!text) return;
     setInput('');
-    await sendText(text, true);
+    await sendText(text, false);
   }
 
   async function resolveConfirmation(approved: boolean) {
@@ -177,12 +178,10 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="background-grid" />
-      <div className="aurora aurora-a" />
-      <div className="aurora aurora-b" />
+      <img className="hud-wallpaper" src={hudImage} alt="" />
+      <div className="hud-vignette" />
       <aside className="command-rail">
         <div className="brand">
-          <div className="brand-mark">J</div>
           <div>
             <span>Project</span>
             <strong>JARVIS</strong>
@@ -224,15 +223,14 @@ export default function App() {
             <span className={`status-dot ${statusTone}`} />
             <span>{stateCopy[state]}</span>
           </div>
-          <JarvisCore state={state} level={audioLevel} />
-          <Waveform level={audioLevel} state={state} />
+          <HudDisplay state={state} level={audioLevel} />
         </section>
 
         <section className="chat-panel">
           <header>
             <div>
-              <span className="eyebrow">Live Conversation</span>
-              <h1>Realtime Jarvis Console</h1>
+              <span className="eyebrow">Conversation</span>
+              <h1>Jarvis Link</h1>
             </div>
             <div className="shield">
               <ShieldCheck size={18} />
@@ -340,9 +338,23 @@ function encodeWav(chunks: Float32Array[], sampleRate: number) {
   return new Blob([view], { type: 'audio/wav' });
 }
 
+function HudDisplay({ state, level }: { state: JarvisState; level: number }) {
+  return (
+    <div className={`hud-display ${state}`}>
+      <img src={hudImage} alt="Jarvis HUD interface" />
+      <motion.div
+        className="hud-pulse"
+        animate={{ scale: [1, 1.08 + level * 0.08, 1], opacity: [0.25, 0.65, 0.25] }}
+        transition={{ repeat: Infinity, duration: state === 'thinking' ? 1.2 : 2.2 }}
+      />
+      <Waveform level={level} state={state} />
+    </div>
+  );
+}
+
 function JarvisCore({ state, level }: { state: JarvisState; level: number }) {
   return (
-    <div className={`core-wrap ${state}`}>
+    <div className={`core-wrap ${state}`} data-level={level}>
       <motion.div
         className="outer-ring"
         animate={{ rotate: 360 }}

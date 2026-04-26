@@ -5,53 +5,30 @@
   height: 100dvh;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: clamp(220px, 22vw, 310px) minmax(0, 1fr);
+  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-rows: 100dvh;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 5%, rgba(34, 211, 238, 0.25), transparent 34%),
-    radial-gradient(circle at 85% 70%, rgba(124, 58, 237, 0.23), transparent 30%),
-    linear-gradient(135deg, #02040a 0%, #07111f 45%, #02040a 100%);
+  background: #02040a;
 }
 
-.background-grid {
+.hud-wallpaper {
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(103, 232, 249, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(103, 232, 249, 0.08) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: radial-gradient(circle at center, black, transparent 72%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.25) contrast(1.08) brightness(0.82);
+  opacity: 0.98;
 }
 
-.aurora {
+.hud-vignette {
   position: absolute;
-  width: 680px;
-  height: 680px;
-  filter: blur(72px);
-  opacity: 0.4;
-  animation: drift 13s ease-in-out infinite alternate;
-}
-
-.aurora-a {
-  top: -220px;
-  left: 180px;
-  background: #0891b2;
-}
-
-.aurora-b {
-  right: -160px;
-  bottom: -220px;
-  background: #7c3aed;
-  animation-delay: -5s;
-}
-
-@keyframes drift {
-  from {
-    transform: translate3d(-40px, 10px, 0) rotate(0deg);
-  }
-  to {
-    transform: translate3d(70px, -50px, 0) rotate(24deg);
-  }
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 46%, transparent 0 28%, rgba(2, 4, 10, 0.1) 45%, rgba(2, 4, 10, 0.7) 100%),
+    linear-gradient(90deg, rgba(2, 4, 10, 0.7), transparent 24%, transparent 70%, rgba(2, 4, 10, 0.62)),
+    repeating-linear-gradient(180deg, rgba(125, 211, 252, 0.06), rgba(125, 211, 252, 0.06) 1px, transparent 1px, transparent 5px);
+  mix-blend-mode: normal;
 }
 
 .command-rail,
@@ -61,23 +38,24 @@
 }
 
 .command-rail {
-  padding: clamp(14px, 2vw, 28px);
+  padding: 12px;
   border-right: 1px solid rgba(125, 211, 252, 0.14);
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.86), rgba(8, 13, 28, 0.72));
-  backdrop-filter: blur(28px);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.2), rgba(8, 13, 28, 0.08));
+  backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.4vw, 20px);
-  min-height: 100dvh;
+  gap: 9px;
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
-  box-shadow: 30px 0 80px rgba(0, 0, 0, 0.38);
+  box-shadow: 30px 0 80px rgba(0, 0, 0, 0.12);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .brand-mark {
@@ -118,7 +96,7 @@
 }
 
 .connection {
-  padding: 13px 14px;
+  padding: 9px 11px;
   border: 1px solid rgba(125, 211, 252, 0.16);
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.54);
@@ -137,7 +115,7 @@
   color: #e0faff;
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.58);
-  padding: 15px 16px;
+  padding: 9px 11px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -167,7 +145,7 @@
   margin-top: auto;
   display: grid;
   gap: 8px;
-  padding: 18px;
+  padding: 11px;
   border-radius: 22px;
   border: 1px solid rgba(125, 211, 252, 0.15);
   background: rgba(2, 6, 23, 0.42);
@@ -186,10 +164,9 @@
 }
 
 .main-stage {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.92fr) minmax(360px, 1.08fr);
-  gap: clamp(14px, 2vw, 28px);
-  padding: clamp(12px, 2.2vw, 32px);
+  position: relative;
+  display: block;
+  padding: 0;
   height: 100dvh;
   min-height: 0;
   overflow: hidden;
@@ -197,27 +174,85 @@
 
 .hero-panel,
 .chat-panel {
-  border: 1px solid rgba(125, 211, 252, 0.17);
-  background: linear-gradient(145deg, rgba(8, 13, 28, 0.72), rgba(15, 23, 42, 0.45));
-  border-radius: 34px;
-  backdrop-filter: blur(28px);
-  box-shadow: 0 24px 110px rgba(0, 0, 0, 0.35);
+  border: 0;
+  background: rgba(2, 6, 23, 0.08);
+  border-radius: 0;
+  backdrop-filter: blur(2px);
+  box-shadow: none;
   min-height: 0;
 }
 
 .hero-panel {
-  padding: clamp(14px, 2vw, 28px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  display: block;
   overflow: hidden;
 }
 
+.hud-display {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hud-display img {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.2) contrast(1.08) brightness(0.92);
+  opacity: 0.96;
+}
+
+.hud-display::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.hud-display::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  mix-blend-mode: screen;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.hud-pulse {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: min(44vw, 520px);
+  height: min(44vw, 520px);
+  border-radius: 50%;
+  border: 1px solid rgba(165, 243, 252, 0.75);
+  box-shadow: 0 0 44px rgba(34, 211, 238, 0.22), inset 0 0 60px rgba(34, 211, 238, 0.08);
+}
+
 .status-row {
-  align-self: stretch;
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
   justify-content: center;
-  padding: 14px;
+  padding: 8px 12px;
   border-radius: 20px;
   background: rgba(2, 6, 23, 0.35);
   border: 1px solid rgba(125, 211, 252, 0.12);
@@ -348,8 +383,12 @@
 }
 
 .waveform {
+  position: absolute;
+  left: 50%;
+  bottom: 7vh;
+  transform: translateX(-50%);
   height: clamp(78px, 12vh, 118px);
-  width: 100%;
+  width: min(88%, 460px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -368,13 +407,18 @@
 }
 
 .chat-panel {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  bottom: 14px;
+  width: min(38vw, 520px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .chat-panel header {
-  padding: 26px 28px 18px;
+  padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -398,10 +442,10 @@ h1 {
 .messages {
   flex: 1;
   overflow: auto;
-  padding: 24px 28px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 @media (max-height: 780px) {
@@ -486,7 +530,7 @@ h1 {
 
 .message p {
   margin: 0;
-  padding: 15px 17px;
+  padding: 10px 12px;
   line-height: 1.55;
   border-radius: 22px;
   border: 1px solid rgba(125, 211, 252, 0.15);
@@ -542,7 +586,7 @@ h1 {
 }
 
 .composer {
-  padding: 18px 28px 26px;
+  padding: 10px 12px 12px;
   display: grid;
   grid-template-columns: 1fr 56px;
   gap: 12px;

@@ -35,10 +35,11 @@ tts:
 
 llm:
   base_url: "https://integrate.api.nvidia.com/v1"
-  model: "meta/llama-3.1-70b-instruct"
+  model: "meta/llama-3.1-8b-instruct"
   api_key_env: "NVIDIA_API_KEY"
   temperature: 0.3
   max_tokens: 1024
+  streaming: false
   system_prompt: |
     You are Jarvis, a real-time voice assistant.
     Reply conversationally for normal questions.
