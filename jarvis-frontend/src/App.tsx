@@ -42,6 +42,7 @@ export default function App() {
   const recordingSampleRateRef = useRef(44100);
 
   useEffect(() => {
+    window.scrollTo({ left: 0, top: 0 });
     return connectEvents(handleEvent, setOnline);
   }, []);
 

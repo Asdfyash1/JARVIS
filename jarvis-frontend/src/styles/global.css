@@ -10,11 +10,21 @@
   -webkit-font-smoothing: antialiased;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
+  position: fixed;
+  inset: 0;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;

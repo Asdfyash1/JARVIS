@@ -1,5 +1,7 @@
 .app-shell {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
   height: 100dvh;
   min-height: 100dvh;
   display: grid;
