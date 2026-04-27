@@ -1,9 +1,8 @@
 import type { Confirmation, JarvisEvent } from './types';
 
-const API_URL = import.meta.env.VITE_JARVIS_API_URL ?? '';
-const WS_URL =
-  import.meta.env.VITE_JARVIS_WS_URL ??
-  `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`;
+const origin = window.location.origin;
+const API_URL = import.meta.env.VITE_JARVIS_API_URL ?? origin;
+const WS_URL = import.meta.env.VITE_JARVIS_WS_URL ?? `${origin.replace(/^http/, 'ws')}/ws`;
 
 export function connectEvents(onEvent: (event: JarvisEvent) => void, onStatus: (online: boolean) => void) {
   let stopped = false;
