@@ -71,6 +71,8 @@ class ActionsConfig(BaseModel):
     require_confirmation: bool = True
     linux_app_allowlist: dict[str, str] = Field(default_factory=dict)
     browser_debugger_address: str = "127.0.0.1:9222"
+    edge_debugger_address: str = "127.0.0.1:9223"
+    browser_debugger_addresses: list[str] = Field(default_factory=list)
     command_allowlist: list[str] = Field(default_factory=list)
 
 

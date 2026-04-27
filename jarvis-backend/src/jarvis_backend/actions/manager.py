@@ -35,18 +35,21 @@ class ActionManager:
             future.set_result(approved)
 
     async def execute_after_confirmation(self, action: AgentAction) -> ActionResult:
-        if self._config.require_confirmation or action.requires_confirmation:
-            await self.request_confirmation(action)
-            approved = await self._confirmations[action.id]
-            self._confirmations.pop(action.id, None)
-            if not approved:
-                result = ActionResult(action_id=action.id, ok=False, message="Action cancelled")
-                await self._event_bus.publish("action_result", result.model_dump())
-                await self._state.set_state(AssistantState.IDLE)
-                return result
-        await self._state.set_state(AssistantState.EXECUTING_ACTION, action.action)
-        executor = self._browser if action.action in self._browser_actions() else self._system
-        result = await executor.execute(action)
+        try:
+            if self._config.require_confirmation or action.requires_confirmation:
+                await self.request_confirmation(action)
+                approved = await self._confirmations[action.id]
+                self._confirmations.pop(action.id, None)
+                if not approved:
+                    result = ActionResult(action_id=action.id, ok=False, message="Action cancelled")
+                    await self._event_bus.publish("action_result", result.model_dump())
+                    await self._state.set_state(AssistantState.IDLE)
+                    return result
+            await self._state.set_state(AssistantState.EXECUTING_ACTION, action.action)
+            executor = self._browser if action.action in self._browser_actions() else self._system
+            result = await executor.execute(action)
+        except Exception as exc:
+            result = ActionResult(action_id=action.id, ok=False, message=str(exc))
         await self._event_bus.publish("action_result", result.model_dump())
         await self._state.set_state(AssistantState.IDLE)
         return result

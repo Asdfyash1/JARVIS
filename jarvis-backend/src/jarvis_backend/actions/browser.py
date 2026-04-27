@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from urllib.parse import quote_plus
+import json
+from urllib.error import URLError
+from urllib.parse import quote, quote_plus
+from urllib.request import Request, urlopen
 
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -16,6 +20,15 @@ from jarvis_backend.state.models import AgentAction
 class BrowserActionExecutor(ActionExecutor):
     def __init__(self, config: ActionsConfig) -> None:
         self._config = config
+
+    @property
+    def _debugger_addresses(self) -> list[str]:
+        addresses = [
+            *self._config.browser_debugger_addresses,
+            self._config.browser_debugger_address,
+            self._config.edge_debugger_address,
+        ]
+        return list(dict.fromkeys(address for address in addresses if address))
 
     async def execute(self, action: AgentAction) -> ActionResult:
         if action.action == "open_website":
@@ -30,34 +43,59 @@ class BrowserActionExecutor(ActionExecutor):
 
     async def _with_driver(self) -> webdriver.Chrome:
         def connect() -> webdriver.Chrome:
-            options = Options()
-            options.add_experimental_option("debuggerAddress", self._config.browser_debugger_address)
-            return webdriver.Chrome(options=options)
+            last_error: Exception | None = None
+            for address in self._debugger_addresses:
+                options = Options()
+                options.add_experimental_option("debuggerAddress", address)
+                try:
+                    return webdriver.Chrome(options=options)
+                except WebDriverException as exc:
+                    last_error = exc
+            if last_error:
+                raise last_error
+            raise RuntimeError("No browser debugger address configured")
 
         return await asyncio.to_thread(connect)
+
+    async def _open_url(self, url: str) -> None:
+        try:
+            await asyncio.to_thread(self._open_url_with_cdp, url)
+            return
+        except RuntimeError:
+            driver = await self._with_driver()
+            await asyncio.to_thread(driver.get, url)
+
+    def _open_url_with_cdp(self, url: str) -> None:
+        last_error: Exception | None = None
+        for address in self._debugger_addresses:
+            base_url = f"http://{address}"
+            request = Request(f"{base_url}/json/new?{quote(url, safe=':/?=&%')}", method="PUT")
+            try:
+                with urlopen(request, timeout=10) as response:
+                    json.load(response)
+                return
+            except (OSError, URLError) as exc:
+                last_error = exc
+        if last_error:
+            raise RuntimeError(f"No Chrome/Edge debugger accepted {url}: {last_error}") from last_error
+        raise RuntimeError("No browser debugger address configured")
 
     async def _open_website(self, action: AgentAction) -> ActionResult:
         if not action.url:
             return ActionResult(action_id=action.id, ok=False, message="Missing url")
-        driver = await self._with_driver()
-        await asyncio.to_thread(driver.get, str(action.url))
+        await self._open_url(str(action.url))
         return ActionResult(action_id=action.id, ok=True, message=f"Opened {action.url}")
 
     async def _google_search(self, action: AgentAction) -> ActionResult:
         if not action.query:
             return ActionResult(action_id=action.id, ok=False, message="Missing query")
-        driver = await self._with_driver()
         url = f"https://www.google.com/search?q={quote_plus(action.query)}"
-        await asyncio.to_thread(driver.get, url)
+        await self._open_url(url)
         return ActionResult(action_id=action.id, ok=True, message=f"Searched Google for {action.query}")
 
     async def _youtube_control(self, action: AgentAction) -> ActionResult:
         if action.youtube_command == "search" and action.query:
-            driver = await self._with_driver()
-            await asyncio.to_thread(
-                driver.get,
-                f"https://www.youtube.com/results?search_query={quote_plus(action.query)}",
-            )
+            await self._open_url(f"https://www.youtube.com/results?search_query={quote_plus(action.query)}")
             return ActionResult(action_id=action.id, ok=True, message=f"Searched YouTube for {action.query}")
         if not action.youtube_command:
             return ActionResult(action_id=action.id, ok=False, message="Missing youtube_command")

@@ -64,9 +64,14 @@ actions:
   require_confirmation: true
   linux_app_allowlist:
     chrome: "google-chrome"
+    edge: "microsoft-edge"
     vscode: "code"
     terminal: "gnome-terminal"
   browser_debugger_address: "127.0.0.1:9222"
+  edge_debugger_address: "127.0.0.1:9223"
+  browser_debugger_addresses:
+    - "127.0.0.1:9222"
+    - "127.0.0.1:9223"
   command_allowlist:
     - "xdg-open"
     - "wmctrl"

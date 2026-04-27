@@ -78,8 +78,16 @@ Jarvis attaches to your existing browser session through remote debugging.
 
 Linux:
 
+Chrome:
+
 ```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-browser-profile"
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-chrome-profile"
+```
+
+Microsoft Edge:
+
+```bash
+microsoft-edge --remote-debugging-port=9223 --user-data-dir="$HOME/jarvis-edge-profile"
 ```
 
 Windows:
@@ -93,7 +101,13 @@ Then keep:
 ```yaml
 actions:
   browser_debugger_address: "127.0.0.1:9222"
+  edge_debugger_address: "127.0.0.1:9223"
+  browser_debugger_addresses:
+    - "127.0.0.1:9222"
+    - "127.0.0.1:9223"
 ```
+
+Website opens, Google searches, and YouTube search actions use Selenium when compatible and fall back to direct Chrome/Edge DevTools Protocol tab creation when ChromeDriver does not match the running browser.
 
 ## API
 
