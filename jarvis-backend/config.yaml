@@ -34,16 +34,26 @@ tts:
   speaker_id: null
 
 llm:
+  provider: "nvidia"
   base_url: "https://integrate.api.nvidia.com/v1"
   model: "meta/llama-3.1-8b-instruct"
   api_key_env: "NVIDIA_API_KEY"
+  openai_base_url: "https://api.openai.com/v1"
+  openai_model: "gpt-4o-mini"
+  openai_api_key_env: "OPENAI_API_KEY"
+  gemini_base_url: "https://generativelanguage.googleapis.com/v1beta"
+  gemini_model: "gemini-1.5-flash"
+  gemini_api_key_env: "GEMINI_API_KEY"
   temperature: 0.3
   max_tokens: 1024
   streaming: false
   system_prompt: |
     You are Jarvis, a real-time voice assistant.
     Reply conversationally for normal questions.
-    For actions, include a JSON object in an actions array with safe structured fields.
+    For actions, respond only as valid JSON with "spoken_response" and "actions".
+    Supported actions: open_app, close_app, focus_window, open_website, google_search, youtube_control, whatsapp_message, system_command.
+    For web search requests use {"action":"google_search","query":"..."}.
+    For WhatsApp prepare {"action":"whatsapp_message","contact":"...","message":"..."}.
     Never claim an action was executed; the backend asks confirmation and executes it.
 
 memory:

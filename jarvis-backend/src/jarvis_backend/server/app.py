@@ -99,7 +99,7 @@ def build_app(settings: Settings) -> FastAPI:
 
     @app.post("/api/input")
     async def input_text(payload: TextInput) -> dict[str, str]:
-        reply = await runtime.agent.handle_user_text_wait(payload.text, speak=payload.speak)
+        reply = await runtime.agent.handle_user_text_wait(payload.text, speak=payload.speak, emit=False)
         return {"status": "ok", "reply": reply}
 
     @app.post("/api/voice/start")
@@ -124,11 +124,9 @@ def build_app(settings: Settings) -> FastAPI:
             samples = samples.mean(axis=1)
         segment = SpeechSegment(samples=samples, sample_rate=int(sample_rate))
         text = await runtime.stt.transcribe(segment)
-        await runtime.event_bus.publish("transcription", {"text": text})
         reply = ""
         if text:
             reply = await runtime.agent.handle_user_text_wait(text, speak=False, emit=False)
-            await runtime.event_bus.publish("ai_response", {"text": reply, "actions": []})
         return {"status": "ok", "text": text, "reply": reply}
 
     @app.post("/api/interrupt")

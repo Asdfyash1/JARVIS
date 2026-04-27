@@ -46,9 +46,16 @@ class TtsConfig(BaseModel):
 
 
 class LlmConfig(BaseModel):
+    provider: Literal["nvidia", "openai", "gemini"] = "nvidia"
     base_url: str = "https://integrate.api.nvidia.com/v1"
     model: str = "meta/llama-3.1-70b-instruct"
     api_key_env: str = "NVIDIA_API_KEY"
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
+    openai_api_key_env: str = "OPENAI_API_KEY"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
+    gemini_model: str = "gemini-1.5-flash"
+    gemini_api_key_env: str = "GEMINI_API_KEY"
     temperature: float = 0.3
     max_tokens: int = 1024
     streaming: bool = False
