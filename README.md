@@ -15,6 +15,7 @@ JARVIS/
 ## Core capabilities
 
 - **Desktop app GUI**: `npm run start` launches a separate Electron app window, not just a website.
+- **Local backend service**: the Electron app talks to `jarvis-backend` over localhost REST/WebSocket; this is the desktop-app architecture, not a hosted website.
 - **NVIDIA LLM by default**: uses `NVIDIA_API_KEY` and the NVIDIA OpenAI-compatible endpoint.
 - **Provider-ready LLM layer**: config includes NVIDIA, OpenAI, and Gemini settings so the provider can be switched later.
 - **Voice layer**: Faster-Whisper remains the local STT engine; VoxCPM2 is the default local TTS engine for expressive voice output.
@@ -177,6 +178,17 @@ Manual YouTube search test:
 3. Click `Approve`.
 4. Verify Chrome or Edge opens `youtube.com/results?search_query=Interstellar+theme`.
 
+Manual WhatsApp unknown-number test:
+
+1. Log into WhatsApp Web in the same Chrome or Edge profile started with remote debugging.
+2. Ask Jarvis: `message +15551234567 on WhatsApp saying hi`.
+3. Verify the Safety Gate says it will prepare a WhatsApp message to that phone number.
+4. Click `Approve`.
+5. Jarvis opens `wa.me/<phone>?text=hi` in the logged-in browser session.
+6. Review WhatsApp, then press send only if the message and recipient are correct.
+
+Chrome does not need to be updated for basic open/search/WhatsApp-link actions because Jarvis falls back to direct Chrome/Edge DevTools Protocol tab creation. If you want Selenium keyboard/mouse automation inside a page, keep ChromeDriver compatible with the installed Chrome/Edge version.
+
 ## Troubleshooting
 
 ### Chat says the backend is offline
@@ -211,7 +223,8 @@ Examples:
 
 - `open YouTube in my browser` → `open_website` → approval required.
 - `search Google for latest AI news` → `google_search` → approval required.
-- `message Alex on WhatsApp` → `whatsapp_message` → approval required before sending.
+- `message Alex on WhatsApp` → `whatsapp_message` contact flow → approval required before sending.
+- `message +15551234567 on WhatsApp saying hi` → `wa.me` phone-number flow → approval required before opening the prepared message.
 
 ## Documentation
 

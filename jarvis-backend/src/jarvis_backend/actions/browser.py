@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from urllib.error import URLError
 from urllib.parse import quote, quote_plus
 from urllib.request import Request, urlopen
@@ -110,8 +111,12 @@ class BrowserActionExecutor(ActionExecutor):
         return ActionResult(action_id=action.id, ok=True, message=f"YouTube {action.youtube_command}")
 
     async def _whatsapp_message(self, action: AgentAction) -> ActionResult:
-        if not action.contact or not action.message:
-            return ActionResult(action_id=action.id, ok=False, message="Missing contact or message")
+        if not action.message:
+            return ActionResult(action_id=action.id, ok=False, message="Missing message")
+        if action.phone_number:
+            return await self._whatsapp_phone_message(action)
+        if not action.contact:
+            return ActionResult(action_id=action.id, ok=False, message="Missing contact or phone_number")
         driver = await self._with_driver()
         await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
         await asyncio.sleep(2)
@@ -139,4 +144,17 @@ class BrowserActionExecutor(ActionExecutor):
             action_id=action.id,
             ok=True,
             message="Sent WhatsApp message after explicit confirmation",
+        )
+
+    async def _whatsapp_phone_message(self, action: AgentAction) -> ActionResult:
+        assert action.phone_number is not None
+        digits = re.sub(r"\D", "", action.phone_number)
+        if len(digits) < 8:
+            return ActionResult(action_id=action.id, ok=False, message="Invalid phone_number")
+        url = f"https://wa.me/{digits}?text={quote_plus(action.message or '')}"
+        await self._open_url(url)
+        return ActionResult(
+            action_id=action.id,
+            ok=True,
+            message=f"Prepared WhatsApp message to +{digits}; press send in WhatsApp if prompted",
         )

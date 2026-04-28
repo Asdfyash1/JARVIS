@@ -1,7 +1,7 @@
-from jarvis_backend.llm.action_parser import ActionParser
 from jarvis_backend.actions.browser import BrowserActionExecutor
 from jarvis_backend.config import ActionsConfig
 from jarvis_backend.config import TtsConfig
+from jarvis_backend.llm.action_parser import ActionParser
 from jarvis_backend.tts.voxcpm import VoxCpmTts
 
 
@@ -18,6 +18,22 @@ def test_parses_structured_action() -> None:
     assert decision.spoken_response == "Opening Chrome after confirmation."
     assert len(decision.actions) == 1
     assert decision.actions[0].action == "open_app"
+
+
+def test_parses_whatsapp_unknown_phone_number_action() -> None:
+    decision = ActionParser().parse(
+        """
+        {
+          "spoken_response": "I can prepare that WhatsApp message. Please confirm first.",
+          "actions": [{"action": "whatsapp_message", "phone_number": "+15551234567", "message": "hi"}]
+        }
+        """
+    )
+
+    assert len(decision.actions) == 1
+    assert decision.actions[0].action == "whatsapp_message"
+    assert decision.actions[0].phone_number == "+15551234567"
+    assert decision.actions[0].message == "hi"
 
 
 def test_browser_debugger_addresses_include_chrome_and_edge() -> None:

@@ -15,7 +15,7 @@ Production-oriented async Python backend for a real-time voice AI assistant.
 - Mandatory confirmation gate before actions.
 - System control executor with allowlisted apps/commands.
 - Browser automation by attaching Selenium to an existing Chrome/Edge remote debugging session.
-- WhatsApp Web message preparation flow that stops before sending.
+- WhatsApp contact and unknown-phone-number message flows, both behind confirmation.
 - Interrupt support while the assistant is speaking or thinking.
 
 ## Quick start
@@ -129,6 +129,24 @@ actions:
 
 Website opens, Google searches, and YouTube search actions use Selenium when compatible and fall back to direct Chrome/Edge DevTools Protocol tab creation when ChromeDriver does not match the running browser.
 
+Chrome/Edge does not need to be updated for basic open/search/WhatsApp-link actions because direct DevTools tab creation avoids the ChromeDriver version mismatch. Keep ChromeDriver compatible only if you need Selenium-driven keyboard/mouse automation inside an already-open page.
+
+## WhatsApp flow
+
+For saved contacts:
+
+```json
+{"action":"whatsapp_message","contact":"Alex","message":"hi"}
+```
+
+For unknown phone numbers:
+
+```json
+{"action":"whatsapp_message","phone_number":"+15551234567","message":"hi"}
+```
+
+Unknown-number messages open `https://wa.me/<phone>?text=<message>` in the logged-in Chrome/Edge profile after approval. Review the recipient and message before pressing send in WhatsApp.
+
 ## API
 
 - `POST /api/input` — text input.
@@ -149,7 +167,7 @@ Actions requiring confirmation include:
 - Opening websites.
 - Searches.
 - Browser automation.
-- WhatsApp message preparation.
+- WhatsApp contact or unknown-number message preparation.
 - System commands.
 
 ## Run tests
