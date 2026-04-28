@@ -2,8 +2,8 @@
 
 Project Jarvis has two main parts:
 
-- `jarvis-backend` — local Python AI/action engine.
-- `jarvis-frontend` — Electron + React desktop HUD.
+- `jarvis-core` — local Python AI/action engine.
+- `jarvis-desktop` — Electron + React desktop HUD.
 
 ## Prerequisites
 
@@ -13,10 +13,10 @@ Project Jarvis has two main parts:
 - NVIDIA API key for default LLM provider
 - Optional GPU/CUDA for faster local STT/TTS
 
-## 1. Backend setup
+## 1. Jarvis Core Engine setup
 
 ```bash
-cd jarvis-backend
+cd jarvis-core
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -102,34 +102,65 @@ actions:
 
 If multiple WhatsApp matches appear for a name, Jarvis asks which one to use.
 
-## 6. Frontend setup
+## 6. Jarvis Desktop setup
 
 ```bash
-cd jarvis-frontend
+cd jarvis-desktop
 npm install
 npm run start
 ```
 
 This launches the Electron desktop app.
 
-## 7. Validation
+## 7. Deploy / run locally
 
-Backend:
+Jarvis is deployed as a local desktop assistant:
+
+1. Install Core Engine dependencies once.
+2. Install Desktop App dependencies once.
+3. Start Chrome/Edge with remote debugging if you want WhatsApp/YouTube/browser automation.
+4. Start the Core Engine.
+5. Start the Desktop App.
 
 ```bash
-cd jarvis-backend
+# Terminal 1
+cd jarvis-core
+source .venv/bin/activate
+export NVIDIA_API_KEY="your-nvidia-api-key"
+PYTHONPATH=src python -m jarvis_backend --config config.yaml
+
+# Terminal 2
+cd jarvis-desktop
+npm run start
+```
+
+Production Desktop App assets:
+
+```bash
+cd jarvis-desktop
+npm run build
+```
+
+The Core Engine still runs locally on `127.0.0.1:8765`; the Electron app connects to it.
+
+## 8. Validation
+
+Core Engine:
+
+```bash
+cd jarvis-core
 source .venv/bin/activate
 PYTHONPATH=src python -m compileall src tests
 PYTHONPATH=src python -m pytest
 ```
 
-Frontend:
+Desktop App:
 
 ```bash
-cd jarvis-frontend
+cd jarvis-desktop
 npm run build
 ```
 
-## 8. Safety
+## 9. Safety
 
 Jarvis never executes arbitrary LLM text. It uses structured actions, Pydantic validation, GUI confirmation, and allowlisted executors.

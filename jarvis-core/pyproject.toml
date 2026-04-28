@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jarvis-backend"
+name = "jarvis-core"
 version = "0.1.0"
-description = "Project Jarvis async voice AI backend"
+description = "Project Jarvis async voice AI core engine"
 requires-python = ">=3.10"
 dependencies = []
 

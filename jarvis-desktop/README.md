@@ -1,20 +1,20 @@
-# Project Jarvis Frontend
+# Project Jarvis Desktop
 
 Electron + React desktop HUD for Project Jarvis.
 
 ## What it does
 
 - Launches as a standalone Electron desktop app.
-- Shows Jarvis HUD state, chat, waveform, and backend connection status.
-- Records browser microphone audio for backend transcription.
-- Speaks replies with browser speech synthesis when local playback is unavailable.
+- Shows Jarvis HUD state, chat, waveform, and Core Engine connection status.
+- Records desktop-app microphone audio for Core Engine transcription.
+- Speaks replies through the desktop window when local playback is unavailable.
 - Shows Safety Gate cards for action confirmations.
-- Communicates with backend through REST and WebSocket.
+- Communicates with the local Core Engine through REST and WebSocket.
 
 ## Structure
 
 ```text
-jarvis-frontend/
+jarvis-desktop/
 ├── electron/
 │   ├── main.cjs       # Electron main process
 │   └── preload.cjs    # Safe preload bridge
@@ -38,9 +38,9 @@ npm run start
 
 `npm run start` runs Vite and opens the Electron desktop window.
 
-## Backend connection
+## Core Engine connection
 
-Default backend:
+Default Core Engine:
 
 ```text
 http://127.0.0.1:8765
