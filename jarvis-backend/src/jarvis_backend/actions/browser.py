@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+from collections.abc import Sequence
 from urllib.error import URLError
 from urllib.parse import quote, quote_plus
 from urllib.request import Request, urlopen
@@ -120,7 +121,15 @@ class BrowserActionExecutor(ActionExecutor):
             return await self._whatsapp_current_chat_message(action, driver)
         await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
         await asyncio.sleep(2)
-        await self._search_whatsapp_contact(driver, action.contact)
+        matches = await self._search_whatsapp_contact(driver, action.contact)
+        if self._ambiguous_whatsapp_matches(matches):
+            options = ", ".join(matches[:5])
+            return ActionResult(
+                action_id=action.id,
+                ok=False,
+                message=f"I found multiple WhatsApp matches for {action.contact}: {options}. Which one should I message?",
+                data={"matches": matches[:5], "needs_clarification": True},
+            )
         await asyncio.sleep(1)
         boxes = await self._whatsapp_text_boxes(driver)
         if not boxes:
@@ -133,7 +142,7 @@ class BrowserActionExecutor(ActionExecutor):
             message="Sent WhatsApp message after explicit confirmation",
         )
 
-    async def _search_whatsapp_contact(self, driver: webdriver.Chrome, contact: str) -> None:
+    async def _search_whatsapp_contact(self, driver: webdriver.Chrome, contact: str) -> list[str]:
         search_boxes = await asyncio.to_thread(
             driver.find_elements,
             By.CSS_SELECTOR,
@@ -146,8 +155,12 @@ class BrowserActionExecutor(ActionExecutor):
             await asyncio.to_thread(driver.switch_to.active_element.send_keys, Keys.CONTROL + "a")
             await asyncio.to_thread(driver.switch_to.active_element.send_keys, contact)
         await asyncio.sleep(2)
+        matches = await asyncio.to_thread(self._whatsapp_visible_matches, driver, contact)
+        if len(matches) > 1:
+            return matches
         target = search_boxes[0] if search_boxes else driver.switch_to.active_element
         await asyncio.to_thread(target.send_keys, Keys.ENTER)
+        return matches
 
     async def _whatsapp_current_chat_message(self, action: AgentAction, driver: webdriver.Chrome) -> ActionResult:
         if "web.whatsapp.com" not in driver.current_url:
@@ -174,6 +187,24 @@ class BrowserActionExecutor(ActionExecutor):
             By.CSS_SELECTOR,
             "div[contenteditable='true'][role='textbox'], div[contenteditable='true'], [contenteditable='true']",
         )
+
+    @staticmethod
+    def _ambiguous_whatsapp_matches(matches: Sequence[str]) -> bool:
+        return len(list(dict.fromkeys(match.strip() for match in matches if match.strip()))) > 1
+
+    @staticmethod
+    def _whatsapp_visible_matches(driver: webdriver.Chrome, contact: str) -> list[str]:
+        contact_words = [word.casefold() for word in contact.split() if word]
+        candidates: list[str] = []
+        rows = driver.find_elements(By.CSS_SELECTOR, "div[role='listitem'], [data-testid='cell-frame-container']")
+        for row in rows:
+            text = row.text.strip()
+            if not text:
+                continue
+            first_line = text.splitlines()[0].strip()
+            if first_line and all(word in text.casefold() for word in contact_words):
+                candidates.append(first_line)
+        return list(dict.fromkeys(candidates))
 
     async def _whatsapp_phone_message(self, action: AgentAction) -> ActionResult:
         assert action.phone_number is not None

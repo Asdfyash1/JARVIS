@@ -1,24 +1,38 @@
 # Project Jarvis Setup Guide
 
-This delivery contains two repos:
+Project Jarvis has two main parts:
 
-- `jarvis-backend` — Python async AI engine.
-- `jarvis-frontend` — Electron + React GUI client.
+- `jarvis-backend` — local Python AI/action engine.
+- `jarvis-frontend` — Electron + React desktop HUD.
+
+## Prerequisites
+
+- Python 3.10+
+- Node.js 20+
+- Chrome or Edge for browser automation
+- NVIDIA API key for default LLM provider
+- Optional GPU/CUDA for faster local STT/TTS
 
 ## 1. Backend setup
 
 ```bash
-cd /home/ubuntu/repos/jarvis-backend
+cd jarvis-backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export NVIDIA_API_KEY="your-nvidia-api-key"
-python -m jarvis_backend --config config.yaml
+PYTHONPATH=src python -m jarvis_backend --config config.yaml
 ```
 
-## 2. Faster-Whisper local STT
+Health check:
 
-Faster-Whisper is configured as the main STT engine:
+```bash
+curl http://127.0.0.1:8765/health
+```
+
+## 2. Local STT
+
+Faster-Whisper is the main speech-to-text engine:
 
 ```yaml
 stt:
@@ -28,95 +42,94 @@ stt:
   compute_type: "auto"
 ```
 
-GPU acceleration:
+Recommendations:
 
-- Install CUDA-compatible NVIDIA drivers.
-- Use `device: "cuda"` and `compute_type: "float16"`.
-- Keep `auto` if you want CPU fallback.
+- Low-latency CPU: `base.en` or `small.en`.
+- Better GPU accuracy: `medium.en` or `large-v3`.
+- Use `beam_size: 1` for faster turn handling.
 
-Low latency recommendations:
+## 3. Local TTS with VoxCPM2
 
-- CPU: `base.en` or `small.en`.
-- GPU: `small.en`, `medium.en`, or `large-v3`.
-- Use beam size `1` for fastest partial-turn transcription.
-
-## 3. Local TTS
-
-Default local TTS is Piper.
-
-Install Piper, then download a voice:
-
-```bash
-cd /home/ubuntu/repos/jarvis-backend
-mkdir -p voices
-wget -O voices/en_US-lessac-medium.onnx \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
-wget -O voices/en_US-lessac-medium.onnx.json \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
-```
-
-Optional Coqui local TTS:
-
-```bash
-pip install TTS
-```
-
-Then set:
+VoxCPM2 is the default text-to-speech voice engine:
 
 ```yaml
 tts:
-  engine: "coqui"
+  engine: "voxcpm"
+  voxcpm_model: "openbmb/VoxCPM2"
+  voice_profile: "female_thick"
 ```
 
-## 4. Browser debugging
+Switch voice profile:
 
-Jarvis must attach to an existing browser session.
+```yaml
+tts:
+  voice_profile: "male_thick"
+```
 
-Linux:
+VoxCPM is a voice-generation/TTS project in its official documentation, so Jarvis keeps Faster-Whisper for STT input.
+
+## 4. Browser automation setup
+
+Jarvis controls an existing browser profile through remote debugging.
+
+Chrome:
 
 ```bash
-google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-browser-profile"
+google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-chrome-profile"
 ```
 
-Windows:
-
-```powershell
-chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\jarvis-profile"
-```
-
-## 5. Frontend setup
+Edge:
 
 ```bash
-cd /home/ubuntu/repos/jarvis-frontend
+microsoft-edge --remote-debugging-port=9223 --user-data-dir="$HOME/jarvis-edge-profile"
+```
+
+Config:
+
+```yaml
+actions:
+  browser_debugger_address: "127.0.0.1:9222"
+  edge_debugger_address: "127.0.0.1:9223"
+```
+
+## 5. WhatsApp setup
+
+1. Start Chrome/Edge with remote debugging.
+2. Open `https://web.whatsapp.com`.
+3. Log in with your phone.
+4. Ask Jarvis to message a contact, phone number, or currently open chat.
+5. Approve the Safety Gate before Jarvis sends or prepares the message.
+
+If multiple WhatsApp matches appear for a name, Jarvis asks which one to use.
+
+## 6. Frontend setup
+
+```bash
+cd jarvis-frontend
 npm install
 npm run start
 ```
 
-## 6. Running both together
+This launches the Electron desktop app.
 
-Terminal 1:
+## 7. Validation
+
+Backend:
 
 ```bash
-cd /home/ubuntu/repos/jarvis-backend
+cd jarvis-backend
 source .venv/bin/activate
-export NVIDIA_API_KEY="your-nvidia-api-key"
-python -m jarvis_backend --config config.yaml
+PYTHONPATH=src python -m compileall src tests
+PYTHONPATH=src python -m pytest
 ```
 
-Terminal 2:
+Frontend:
 
 ```bash
-cd /home/ubuntu/repos/jarvis-frontend
-npm run start
+cd jarvis-frontend
+npm run build
 ```
 
-## 7. Safety
+## 8. Safety
 
-Jarvis never directly executes arbitrary LLM text. The LLM proposes structured JSON actions, then the backend:
-
-1. Parses the JSON.
-2. Validates fields.
-3. Shows a GUI confirmation prompt.
-4. Executes only after approval.
-
-System commands and apps are allowlisted in `config.yaml`.
+Jarvis never executes arbitrary LLM text. It uses structured actions, Pydantic validation, GUI confirmation, and allowlisted executors.

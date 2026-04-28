@@ -65,6 +65,11 @@ def test_browser_debugger_addresses_include_chrome_and_edge() -> None:
     assert executor._debugger_addresses == ["127.0.0.1:9222", "127.0.0.1:9223"]
 
 
+def test_whatsapp_ambiguous_match_detection() -> None:
+    assert BrowserActionExecutor._ambiguous_whatsapp_matches(["U Karthik", "U Karthik in Study Group"])
+    assert not BrowserActionExecutor._ambiguous_whatsapp_matches(["U Karthik", "U Karthik"])
+
+
 def test_voxcpm_voice_profiles_default_to_thick_female_and_allow_male() -> None:
     female = VoxCpmTts(TtsConfig())
     male = VoxCpmTts(TtsConfig(voice_profile="male_thick"))

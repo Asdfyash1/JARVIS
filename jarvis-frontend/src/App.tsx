@@ -28,7 +28,7 @@ export default function App() {
     {
       id: uid(),
       role: 'assistant',
-      content: 'Project Jarvis online. Local Whisper STT and local neural voice are armed.'
+      content: 'Project Jarvis online. Faster-Whisper STT and VoxCPM2 voice are armed.'
     }
   ]);
   const [input, setInput] = useState('');

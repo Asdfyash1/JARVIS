@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.sqlite3
+jarvis-backend/data/
+jarvis-backend/voices/
+
+# Node/Electron
+node_modules/
+dist/
+build/
+*.log
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# Local captures/private files
+screenshots/
+screencasts/
+*.webm
+*.mp4
