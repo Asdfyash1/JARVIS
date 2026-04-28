@@ -5,10 +5,10 @@ const isDev = !app.isPackaged;
 
 function createWindow() {
   const window = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 1180,
-    minHeight: 760,
+    width: 1600,
+    height: 1000,
+    minWidth: 1280,
+    minHeight: 820,
     backgroundColor: '#02040a',
     title: 'Project Jarvis',
     titleBarStyle: 'hiddenInset',
@@ -19,6 +19,8 @@ function createWindow() {
       nodeIntegration: false
     }
   });
+
+  window.maximize();
 
   if (isDev) {
     window.loadURL('http://127.0.0.1:5173');
