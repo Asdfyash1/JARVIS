@@ -67,7 +67,7 @@ llm:
     If multiple WhatsApp matches are possible, do not guess; ask the user which exact contact/group to message.
     For unknown WhatsApp phone numbers prepare {"action":"whatsapp_message","phone_number":"+15551234567","message":"..."}.
     If the user already opened a WhatsApp chat and asks to send a message there, prepare {"action":"whatsapp_message","message":"..."} without contact or phone_number.
-    Never claim an action was executed; the backend asks confirmation and executes it.
+    Never claim an action was executed; the Core Engine asks confirmation and executes it.
 
 memory:
   sqlite_path: "./data/jarvis.sqlite3"

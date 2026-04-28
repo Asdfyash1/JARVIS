@@ -2,14 +2,14 @@
 
 ![Project Jarvis desktop HUD](docs/images/jarvis-desktop-hud.png)
 
-Project Jarvis is a modular AI assistant built as a real desktop application: an Electron + React HUD connected to a local Python FastAPI AI engine. It can chat, listen, speak, remember context, and execute browser/system actions only after explicit user confirmation.
+Project Jarvis is a modular AI assistant built as a real desktop application: an Electron + React HUD window connected to a local Python FastAPI AI engine. It can chat, listen, speak, remember context, and execute desktop/browser/system actions only after explicit user confirmation.
 
 ## Highlights
 
-- **Desktop app, not just a website** — `npm run start` launches a separate Electron window.
-- **Local backend engine** — FastAPI REST/WebSocket service powers voice, memory, LLM, and actions.
+- **Desktop app, not a web app** — `npm run start` launches a separate Electron window.
+- **Local Core Engine** — FastAPI REST/WebSocket service powers voice, memory, LLM, and actions.
 - **NVIDIA LLM by default** — OpenAI-compatible NVIDIA endpoint with OpenAI/Gemini provider-ready config.
-- **Local voice pipeline** — Faster-Whisper STT for input and VoxCPM2 voice-design TTS for output.
+- **Voice system** — VoxCPM2 is the Jarvis voice engine; Faster-Whisper handles speech-to-text input because VoxCPM is voice-generation/TTS.
 - **Voice profiles** — thick female Jarvis voice by default and thick male voice selectable in config.
 - **Safety Gate** — all risky actions require approval before execution.
 - **Browser automation** — Chrome and Edge remote-debugging support with CDP fallback.
@@ -27,7 +27,7 @@ JARVIS/
 │   ├── images/
 │   │   └── jarvis-desktop-hud.png
 │   └── guides/
-├── jarvis-backend/
+├── jarvis-core/
 │   ├── README.md
 │   ├── config.yaml
 │   ├── requirements.txt
@@ -39,10 +39,10 @@ JARVIS/
 │   │   ├── memory/       # SQLite conversation history
 │   │   ├── server/       # FastAPI app and WebSocket endpoints
 │   │   ├── state/        # Pydantic state/action models
-│   │   ├── stt/          # Faster-Whisper STT
+│   │   ├── stt/          # Faster-Whisper speech input
 │   │   └── tts/          # VoxCPM/Piper/Coqui TTS adapters
 │   └── tests/
-└── jarvis-frontend/
+└── jarvis-desktop/
     ├── README.md
     ├── package.json
     ├── electron/         # Electron main/preload process
@@ -57,11 +57,11 @@ JARVIS/
 ## Architecture
 
 ```text
-Electron Desktop HUD
-  ├─ Chat + browser mic capture
-  ├─ Browser speech fallback
+Electron Desktop App Window
+  ├─ Chat + desktop mic capture
+  ├─ Desktop speech fallback
   ├─ WebSocket state/action updates
-  └─ REST calls for direct chat/voice replies
+  └─ Local REST calls for direct chat/voice replies
 
 FastAPI AI Engine
   ├─ JarvisAgent orchestration
@@ -70,17 +70,17 @@ FastAPI AI Engine
   ├─ ActionParser → ActionManager → Safety Gate
   ├─ BrowserActionExecutor (Chrome/Edge CDP + Selenium)
   ├─ SystemActionExecutor (allowlisted apps/commands)
-  ├─ Faster-Whisper STT
+  ├─ Faster-Whisper speech input
   ├─ VoxCPM2 TTS voice design
   └─ Piper/Coqui fallback TTS adapters
 ```
 
 ## Quick start
 
-### 1. Backend
+### 1. Jarvis Core Engine
 
 ```bash
-cd jarvis-backend
+cd jarvis-core
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -88,7 +88,7 @@ export NVIDIA_API_KEY="your-nvidia-api-key"
 PYTHONPATH=src python -m jarvis_backend --config config.yaml
 ```
 
-Backend default: `http://127.0.0.1:8765`
+Core Engine default: `http://127.0.0.1:8765`
 
 Health check:
 
@@ -112,19 +112,53 @@ Microsoft Edge:
 microsoft-edge --remote-debugging-port=9223 --user-data-dir="$HOME/jarvis-edge-profile"
 ```
 
-### 3. Desktop app
+### 3. Jarvis Desktop app
 
 ```bash
-cd jarvis-frontend
+cd jarvis-desktop
 npm install
 npm run start
 ```
 
 This starts Vite and opens the Electron desktop app window.
 
+## Deployment / local installation
+
+Project Jarvis is meant to run locally as a desktop assistant, not as a hosted web app.
+
+Development run:
+
+```bash
+# Terminal 1: Core Engine
+cd jarvis-core
+source .venv/bin/activate
+export NVIDIA_API_KEY="your-nvidia-api-key"
+PYTHONPATH=src python -m jarvis_backend --config config.yaml
+
+# Terminal 2: Desktop app
+cd jarvis-desktop
+npm run start
+```
+
+Desktop production build:
+
+```bash
+cd jarvis-desktop
+npm run build
+```
+
+Core Engine production run:
+
+```bash
+cd jarvis-core
+source .venv/bin/activate
+export NVIDIA_API_KEY="your-nvidia-api-key"
+PYTHONPATH=src python -m jarvis_backend --config config.yaml
+```
+
 ## Configuration
 
-Main config: `jarvis-backend/config.yaml`
+Main config: `jarvis-core/config.yaml`
 
 Important values:
 
@@ -161,7 +195,7 @@ All of these require approval in the GUI Safety Gate before execution.
 
 | User asks | Structured action | Behavior |
 |---|---|---|
-| `open YouTube in my browser` | `open_website` / `youtube_control` | Opens YouTube in Chrome/Edge |
+| `open YouTube` | `open_website` / `youtube_control` | Opens YouTube in Chrome/Edge |
 | `search YouTube for Interstellar theme` | `youtube_control` with `search` | Opens YouTube search results |
 | `search Google for latest AI news` | `google_search` | Opens Google results |
 | `message U Karthik on WhatsApp saying hi` | `whatsapp_message` contact flow | Searches contact and sends after approval |
@@ -172,18 +206,18 @@ If WhatsApp search shows multiple possible matches, Jarvis returns the visible o
 
 ## Validation
 
-Backend:
+Core Engine:
 
 ```bash
-cd jarvis-backend
+cd jarvis-core
 python -m compileall src tests
 PYTHONPATH=src python -m pytest
 ```
 
-Frontend:
+Desktop App:
 
 ```bash
-cd jarvis-frontend
+cd jarvis-desktop
 npm run build
 ```
 
@@ -195,11 +229,11 @@ Jarvis does not execute raw LLM text. The action path is:
 LLM structured JSON → Pydantic validation → GUI Safety Gate → user approval → allowlisted executor
 ```
 
-Protected actions include app control, website opens, searches, browser automation, WhatsApp messaging, and system commands.
+Protected actions include app control, web page opens, searches, browser automation, WhatsApp messaging, and system commands.
 
 ## Documentation
 
 - [Setup Guide](SETUP_GUIDE.md)
 - [Delivery Report](DELIVERY_REPORT.md)
-- [Backend README](jarvis-backend/README.md)
-- [Frontend README](jarvis-frontend/README.md)
+- [Core Engine README](jarvis-core/README.md)
+- [Desktop App README](jarvis-desktop/README.md)

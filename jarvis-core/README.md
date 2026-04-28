@@ -1,4 +1,4 @@
-# Project Jarvis Backend
+# Project Jarvis Core Engine
 
 Async Python AI engine for Project Jarvis.
 
@@ -14,12 +14,12 @@ Async Python AI engine for Project Jarvis.
 - Parses structured action JSON.
 - Requires confirmation before risky actions execute.
 - Automates Chrome/Edge through remote debugging, Selenium, and CDP fallback.
-- Supports app control, website opens, Google search, YouTube search/control, WhatsApp messaging, and allowlisted commands.
+- Supports app control, web page opens, Google search, YouTube search/control, WhatsApp messaging, and allowlisted commands.
 
 ## Structure
 
 ```text
-jarvis-backend/
+jarvis-core/
 ├── config.yaml
 ├── requirements.txt
 ├── pyproject.toml

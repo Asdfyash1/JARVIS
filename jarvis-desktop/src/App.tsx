@@ -28,7 +28,7 @@ export default function App() {
     {
       id: uid(),
       role: 'assistant',
-      content: 'Project Jarvis online. Faster-Whisper STT and VoxCPM2 voice are armed.'
+      content: 'Project Jarvis online. VoxCPM2 voice core is armed.'
     }
   ]);
   const [input, setInput] = useState('');
@@ -158,7 +158,7 @@ export default function App() {
     setConfirmation(null);
   }
 
-  async function toggleBrowserMic() {
+  async function toggleAppMic() {
     if (recording) {
       const context = audioContextRef.current;
       const processor = processorRef.current;
@@ -216,15 +216,15 @@ export default function App() {
         </div>
         <div className={`connection ${statusTone}`}>
           <Radio size={16} />
-          <span>{online ? 'Backend linked' : 'Backend offline'}</span>
+          <span>{online ? 'Core linked' : 'Core offline'}</span>
         </div>
         <button className="rail-button primary" onClick={() => startVoice()}>
           <Mic size={18} />
           VM Voice
         </button>
-        <button className={`rail-button ${recording ? 'recording' : 'primary'}`} onClick={() => toggleBrowserMic()}>
+        <button className={`rail-button ${recording ? 'recording' : 'primary'}`} onClick={() => toggleAppMic()}>
           <Mic size={18} />
-          {recording ? 'Stop Browser Mic' : 'Browser Mic'}
+          {recording ? 'Stop App Mic' : 'App Mic'}
         </button>
         <button className="rail-button" onClick={() => stopVoice()}>
           <Square size={18} />
@@ -235,8 +235,8 @@ export default function App() {
           Interrupt
         </button>
         <div className="telemetry">
-          <span>Speech engine</span>
-          <strong>Faster-Whisper local</strong>
+          <span>Voice model</span>
+          <strong>VoxCPM2 local</strong>
           <span>Voice engine</span>
           <strong>VoxCPM2 thick voice</strong>
           <span>Reasoning core</span>

@@ -4,10 +4,10 @@
 
 Project Jarvis is delivered as a two-part desktop assistant system:
 
-1. `jarvis-backend` — Python FastAPI AI/action engine.
-2. `jarvis-frontend` — Electron + React desktop HUD.
+1. `jarvis-core` — Python FastAPI AI/action engine.
+2. `jarvis-desktop` — Electron + React desktop HUD.
 
-## Implemented backend capabilities
+## Implemented Core Engine capabilities
 
 - FastAPI REST + WebSocket server.
 - Event-driven runtime and typed event bus.
@@ -19,7 +19,7 @@ Project Jarvis is delivered as a two-part desktop assistant system:
 - Structured action parsing.
 - Confirmation-gated action manager.
 - Chrome/Edge browser automation through remote debugging, Selenium, and CDP fallback.
-- Google search, YouTube open/search/control, website opens.
+- Google search, YouTube open/search/control, web page opens.
 - WhatsApp messaging flows:
   - saved contact name,
   - phone-number `wa.me` flow,
@@ -27,15 +27,15 @@ Project Jarvis is delivered as a two-part desktop assistant system:
   - ambiguity clarification when multiple matches are visible.
 - System action executor with allowlisted apps/commands.
 
-## Implemented frontend capabilities
+## Implemented Desktop HUD capabilities
 
 - Electron desktop shell.
 - React + TypeScript app.
 - Jarvis HUD image integration.
 - Futuristic dark UI.
 - Chat panel.
-- Browser microphone upload path.
-- Browser speech fallback.
+- Desktop-app microphone upload path.
+- Desktop-window speech fallback.
 - State indicators for listening/thinking/speaking/confirmation/execution.
 - Safety Gate action confirmation card.
 
@@ -51,8 +51,8 @@ WhatsApp, browser actions, app opens, and system commands all require confirmati
 
 ## Verified flows
 
-- Backend compile and tests.
-- Frontend production build.
+- Core Engine compile and tests.
+- Desktop production build.
 - Chrome updated and remote debugging verified.
 - YouTube search automation opened YouTube results.
 - WhatsApp contact message sent to `U Karthik` after confirmation during testing.
@@ -61,7 +61,7 @@ No WhatsApp/private screenshots are committed to the repository.
 
 ## Recommended next improvements
 
-1. Package backend + frontend into a single installer.
+1. Package Jarvis Core + Jarvis Desktop into a single installer.
 2. Add UI settings for LLM provider and voice profile switching.
 3. Add encrypted memory/profile storage.
 4. Add automated end-to-end UI tests.

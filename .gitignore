@@ -6,8 +6,8 @@ __pycache__/
 .env.*
 !.env.example
 *.sqlite3
-jarvis-backend/data/
-jarvis-backend/voices/
+jarvis-core/data/
+jarvis-core/voices/
 
 # Node/Electron
 node_modules/
