@@ -120,22 +120,9 @@ class BrowserActionExecutor(ActionExecutor):
             return await self._whatsapp_current_chat_message(action, driver)
         await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
         await asyncio.sleep(2)
-        search_boxes = await asyncio.to_thread(
-            driver.find_elements,
-            By.CSS_SELECTOR,
-            "div[contenteditable='true'][role='textbox']",
-        )
-        if not search_boxes:
-            return ActionResult(action_id=action.id, ok=False, message="WhatsApp search box not available")
-        await asyncio.to_thread(search_boxes[0].send_keys, action.contact)
+        await self._search_whatsapp_contact(driver, action.contact)
         await asyncio.sleep(1)
-        await asyncio.to_thread(search_boxes[0].send_keys, Keys.ENTER)
-        await asyncio.sleep(1)
-        boxes = await asyncio.to_thread(
-            driver.find_elements,
-            By.CSS_SELECTOR,
-            "div[contenteditable='true'][role='textbox']",
-        )
+        boxes = await self._whatsapp_text_boxes(driver)
         if not boxes:
             return ActionResult(action_id=action.id, ok=False, message="WhatsApp message box not available")
         await asyncio.to_thread(boxes[-1].send_keys, action.message)
@@ -146,6 +133,22 @@ class BrowserActionExecutor(ActionExecutor):
             message="Sent WhatsApp message after explicit confirmation",
         )
 
+    async def _search_whatsapp_contact(self, driver: webdriver.Chrome, contact: str) -> None:
+        search_boxes = await asyncio.to_thread(
+            driver.find_elements,
+            By.CSS_SELECTOR,
+            "div[contenteditable='true'][role='textbox'], input[aria-label='Search or start a new chat']",
+        )
+        if search_boxes:
+            await asyncio.to_thread(search_boxes[0].send_keys, Keys.CONTROL + "a")
+            await asyncio.to_thread(search_boxes[0].send_keys, contact)
+        else:
+            await asyncio.to_thread(driver.switch_to.active_element.send_keys, Keys.CONTROL + "a")
+            await asyncio.to_thread(driver.switch_to.active_element.send_keys, contact)
+        await asyncio.sleep(2)
+        target = search_boxes[0] if search_boxes else driver.switch_to.active_element
+        await asyncio.to_thread(target.send_keys, Keys.ENTER)
+
     async def _whatsapp_current_chat_message(self, action: AgentAction, driver: webdriver.Chrome) -> ActionResult:
         if "web.whatsapp.com" not in driver.current_url:
             await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
@@ -154,11 +157,7 @@ class BrowserActionExecutor(ActionExecutor):
                 ok=False,
                 message="Open the WhatsApp chat first, then ask Jarvis to send the message",
             )
-        boxes = await asyncio.to_thread(
-            driver.find_elements,
-            By.CSS_SELECTOR,
-            "div[contenteditable='true'][role='textbox']",
-        )
+        boxes = await self._whatsapp_text_boxes(driver)
         if not boxes:
             return ActionResult(action_id=action.id, ok=False, message="WhatsApp message box not available")
         await asyncio.to_thread(boxes[-1].send_keys, action.message)
@@ -167,6 +166,13 @@ class BrowserActionExecutor(ActionExecutor):
             action_id=action.id,
             ok=True,
             message="Sent WhatsApp message in the currently open chat after explicit confirmation",
+        )
+
+    async def _whatsapp_text_boxes(self, driver: webdriver.Chrome):
+        return await asyncio.to_thread(
+            driver.find_elements,
+            By.CSS_SELECTOR,
+            "div[contenteditable='true'][role='textbox'], div[contenteditable='true'], [contenteditable='true']",
         )
 
     async def _whatsapp_phone_message(self, action: AgentAction) -> ActionResult:
