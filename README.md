@@ -1,49 +1,78 @@
 # Project Jarvis
 
-Project Jarvis is a modular, real-time, voice-enabled AI assistant with a Python AI engine and an Electron + React desktop HUD. It is designed to chat, listen, speak, remember conversation context, and execute browser/system actions only after explicit user confirmation.
+![Project Jarvis desktop HUD](docs/images/jarvis-desktop-hud.png)
 
-## What is included
+Project Jarvis is a modular AI assistant built as a real desktop application: an Electron + React HUD connected to a local Python FastAPI AI engine. It can chat, listen, speak, remember context, and execute browser/system actions only after explicit user confirmation.
+
+## Highlights
+
+- **Desktop app, not just a website** — `npm run start` launches a separate Electron window.
+- **Local backend engine** — FastAPI REST/WebSocket service powers voice, memory, LLM, and actions.
+- **NVIDIA LLM by default** — OpenAI-compatible NVIDIA endpoint with OpenAI/Gemini provider-ready config.
+- **Local voice pipeline** — Faster-Whisper STT for input and VoxCPM2 voice-design TTS for output.
+- **Voice profiles** — thick female Jarvis voice by default and thick male voice selectable in config.
+- **Safety Gate** — all risky actions require approval before execution.
+- **Browser automation** — Chrome and Edge remote-debugging support with CDP fallback.
+- **WhatsApp automation** — contact, phone-number, and current-open-chat flows; ambiguous contact matches trigger clarification instead of guessing.
+- **Modern HUD UI** — dark Jarvis interface with HUD art, waveform, chat, state indicators, and action confirmations.
+
+## Repository layout
 
 ```text
 JARVIS/
-├── jarvis-backend/      # FastAPI + asyncio AI/action engine
-├── jarvis-frontend/     # Electron + React + TypeScript desktop GUI
-├── SETUP_GUIDE.md       # Detailed local setup guide
-└── DELIVERY_REPORT.md   # Implementation summary and improvement roadmap
+├── README.md
+├── SETUP_GUIDE.md
+├── DELIVERY_REPORT.md
+├── docs/
+│   ├── images/
+│   │   └── jarvis-desktop-hud.png
+│   └── guides/
+├── jarvis-backend/
+│   ├── README.md
+│   ├── config.yaml
+│   ├── requirements.txt
+│   ├── pyproject.toml
+│   ├── src/jarvis_backend/
+│   │   ├── actions/      # Browser/system executors + confirmation-safe action handling
+│   │   ├── audio/        # Microphone, playback, VAD, voice pipeline
+│   │   ├── llm/          # NVIDIA/OpenAI/Gemini-compatible client + action parser
+│   │   ├── memory/       # SQLite conversation history
+│   │   ├── server/       # FastAPI app and WebSocket endpoints
+│   │   ├── state/        # Pydantic state/action models
+│   │   ├── stt/          # Faster-Whisper STT
+│   │   └── tts/          # VoxCPM/Piper/Coqui TTS adapters
+│   └── tests/
+└── jarvis-frontend/
+    ├── README.md
+    ├── package.json
+    ├── electron/         # Electron main/preload process
+    └── src/
+        ├── assets/       # HUD artwork
+        ├── lib/          # REST/WebSocket API client + types
+        ├── styles/       # Futuristic HUD CSS
+        ├── App.tsx
+        └── main.tsx
 ```
-
-## Core capabilities
-
-- **Desktop app GUI**: `npm run start` launches a separate Electron app window, not just a website.
-- **NVIDIA LLM by default**: uses `NVIDIA_API_KEY` and the NVIDIA OpenAI-compatible endpoint.
-- **Provider-ready LLM layer**: config includes NVIDIA, OpenAI, and Gemini settings so the provider can be switched later.
-- **Local-first speech**: Faster-Whisper STT and Piper/Coqui-style local TTS integration points.
-- **Browser microphone path**: the GUI can record browser mic audio and send it to backend transcription.
-- **Browser speech fallback**: the UI can speak replies with browser speech synthesis when local TTS assets are unavailable.
-- **Conversation memory**: SQLite-backed chat history.
-- **Confirmed actions**: app open/close/focus, website opens, Google search, YouTube controls/search, WhatsApp prep/send, and allowlisted system commands.
-- **Safety gate**: actions are parsed as structured intents and require user approval before execution.
-- **Chrome and Edge support**: browser actions use remote debugging for Chrome or Microsoft Edge and fall back to Chrome DevTools Protocol when Selenium/ChromeDriver is mismatched.
 
 ## Architecture
 
 ```text
-Electron/React GUI
-  ├─ Chat composer and HUD state display
-  ├─ Browser mic capture and browser speech output
-  ├─ WebSocket events for state/action confirmations
+Electron Desktop HUD
+  ├─ Chat + browser mic capture
+  ├─ Browser speech fallback
+  ├─ WebSocket state/action updates
   └─ REST calls for direct chat/voice replies
 
-FastAPI backend
+FastAPI AI Engine
   ├─ JarvisAgent orchestration
-  ├─ NVIDIA/OpenAI/Gemini-compatible LLM client config
-  ├─ ActionParser for structured action extraction
-  ├─ ActionManager safety confirmation layer
-  ├─ BrowserActionExecutor for Chrome/Edge CDP/Selenium actions
-  ├─ SystemActionExecutor for allowlisted OS commands/apps
-  ├─ Faster-Whisper STT pipeline
-  ├─ Piper/Coqui TTS integration points
-  └─ SQLite memory store
+  ├─ ConversationMemory (SQLite)
+  ├─ NVIDIA/OpenAI/Gemini-compatible LLM config
+  ├─ ActionParser → ActionManager → Safety Gate
+  ├─ BrowserActionExecutor (Chrome/Edge CDP + Selenium)
+  ├─ SystemActionExecutor (allowlisted apps/commands)
+  ├─ Faster-Whisper STT
+  ├─ VoxCPM2 TTS voice design
+  └─ Piper/Coqui fallback TTS adapters
 ```
 
 ## Quick start
@@ -67,9 +96,9 @@ Health check:
 curl http://127.0.0.1:8765/health
 ```
 
-### 2. Browser automation setup
+### 2. Chrome / Edge automation
 
-Jarvis controls your existing browser through remote debugging.
+Jarvis controls your existing browser session through remote debugging.
 
 Chrome:
 
@@ -83,17 +112,6 @@ Microsoft Edge:
 microsoft-edge --remote-debugging-port=9223 --user-data-dir="$HOME/jarvis-edge-profile"
 ```
 
-The backend config tries both by default:
-
-```yaml
-actions:
-  browser_debugger_address: "127.0.0.1:9222"
-  edge_debugger_address: "127.0.0.1:9223"
-  browser_debugger_addresses:
-    - "127.0.0.1:9222"
-    - "127.0.0.1:9223"
-```
-
 ### 3. Desktop app
 
 ```bash
@@ -102,28 +120,64 @@ npm install
 npm run start
 ```
 
-This starts Vite and then opens the Electron desktop app.
+This starts Vite and opens the Electron desktop app window.
 
 ## Configuration
 
-Main config file: `jarvis-backend/config.yaml`
+Main config: `jarvis-backend/config.yaml`
 
 Important values:
 
-- `llm.provider`: `nvidia` by default. Can be changed to `openai` or `gemini` after adding the matching API key env var.
-- `llm.api_key_env`: `NVIDIA_API_KEY`
-- `actions.require_confirmation`: `true`
-- `actions.browser_debugger_addresses`: ordered Chrome/Edge remote debugging endpoints.
-- `actions.linux_app_allowlist`: allowed apps Jarvis can open, such as Chrome, Edge, VS Code, and Terminal.
+- `llm.provider`: `nvidia` by default; switchable to `openai` or `gemini` later.
+- `llm.api_key_env`: `NVIDIA_API_KEY`.
+- `stt.engine`: `faster_whisper`. VoxCPM is TTS/voice-generation, not official STT.
+- `tts.engine`: `voxcpm` by default.
+- `tts.voice_profile`: `female_thick` by default; set `male_thick` for male voice.
+- `actions.require_confirmation`: `true`.
+- `actions.browser_debugger_addresses`: ordered Chrome/Edge endpoints.
 
-## Testing and validation
+## VoxCPM voice setup
+
+```yaml
+tts:
+  engine: "voxcpm"
+  voxcpm_model: "openbmb/VoxCPM2"
+  voice_profile: "female_thick"
+  voice_profiles:
+    female_thick: "A confident adult woman with a deeper, thicker, warm contralto voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+    male_thick: "A confident adult man with a deep, thick, warm baritone voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+```
+
+Switch to male:
+
+```yaml
+tts:
+  voice_profile: "male_thick"
+```
+
+## Action examples
+
+All of these require approval in the GUI Safety Gate before execution.
+
+| User asks | Structured action | Behavior |
+|---|---|---|
+| `open YouTube in my browser` | `open_website` / `youtube_control` | Opens YouTube in Chrome/Edge |
+| `search YouTube for Interstellar theme` | `youtube_control` with `search` | Opens YouTube search results |
+| `search Google for latest AI news` | `google_search` | Opens Google results |
+| `message U Karthik on WhatsApp saying hi` | `whatsapp_message` contact flow | Searches contact and sends after approval |
+| `message +15551234567 on WhatsApp saying hi` | `whatsapp_message` phone flow | Opens `wa.me` prepared message |
+| `send hi on WhatsApp` with a chat open | `whatsapp_message` current-chat flow | Sends to currently open chat |
+
+If WhatsApp search shows multiple possible matches, Jarvis returns the visible options and asks which one to use instead of guessing.
+
+## Validation
 
 Backend:
 
 ```bash
 cd jarvis-backend
 python -m compileall src tests
-PYTHONPATH=src .venv/bin/python -m pytest tests/test_action_parser.py
+PYTHONPATH=src python -m pytest
 ```
 
 Frontend:
@@ -133,54 +187,19 @@ cd jarvis-frontend
 npm run build
 ```
 
-Manual browser action test:
-
-1. Start Chrome or Edge with remote debugging.
-2. Start backend and desktop app.
-3. Ask Jarvis: `open YouTube in my browser`.
-4. Verify the Safety Gate appears.
-5. Click `Approve`.
-6. Verify YouTube opens in Chrome or Edge.
-
-## Troubleshooting
-
-### Chat says the backend is offline
-
-- Confirm backend is running on `127.0.0.1:8765`.
-- Check `curl http://127.0.0.1:8765/health`.
-- Restart the frontend after changing backend URLs.
-
-### Browser action stays stuck on Executing
-
-- Make sure Chrome or Edge is running with remote debugging.
-- Chrome should expose `http://127.0.0.1:9222/json/version`.
-- Edge should expose `http://127.0.0.1:9223/json/version`.
-- Jarvis now falls back to direct CDP open-tab calls if Selenium ChromeDriver is mismatched.
-
-### NVIDIA responses fail
-
-- Ensure `NVIDIA_API_KEY` is exported in the backend shell.
-- Keep secrets in environment variables only. Do not commit keys.
-
-### Voice transcription fails
-
-- Confirm backend dependencies installed successfully.
-- Browser mic requires browser permission.
-- Local Faster-Whisper model download may take time on first run.
-
 ## Safety model
 
-Jarvis does not directly execute actions from text. The LLM proposes structured actions, the backend parses them, the GUI shows a Safety Gate, and the backend executes only after approval.
+Jarvis does not execute raw LLM text. The action path is:
 
-Examples:
+```text
+LLM structured JSON → Pydantic validation → GUI Safety Gate → user approval → allowlisted executor
+```
 
-- `open YouTube in my browser` → `open_website` → approval required.
-- `search Google for latest AI news` → `google_search` → approval required.
-- `message Alex on WhatsApp` → `whatsapp_message` → approval required before sending.
+Protected actions include app control, website opens, searches, browser automation, WhatsApp messaging, and system commands.
 
 ## Documentation
 
-- `SETUP_GUIDE.md`
-- `DELIVERY_REPORT.md`
-- `jarvis-backend/README.md`
-- `jarvis-frontend/README.md`
+- [Setup Guide](SETUP_GUIDE.md)
+- [Delivery Report](DELIVERY_REPORT.md)
+- [Backend README](jarvis-backend/README.md)
+- [Frontend README](jarvis-frontend/README.md)

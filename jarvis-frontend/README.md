@@ -1,36 +1,53 @@
 # Project Jarvis Frontend
 
-Electron + React GUI for Project Jarvis with realtime WebSocket updates, animated state transitions, waveform visualization, chat, and action confirmation UX.
+Electron + React desktop HUD for Project Jarvis.
 
-## Implemented capabilities
+## What it does
 
-- Electron desktop shell.
-- React + TypeScript UI.
-- Futuristic dark Jarvis-style visual system.
-- Animated arc reactor core with state-specific motion.
-- Audio waveform visualizer driven by backend audio-level events.
-- Live chat with streaming AI response deltas.
-- Backend connection status.
-- Continuous voice start/stop controls.
-- Interrupt button.
-- Safety confirmation card for tool/action requests.
+- Launches as a standalone Electron desktop app.
+- Shows Jarvis HUD state, chat, waveform, and backend connection status.
+- Records browser microphone audio for backend transcription.
+- Speaks replies with browser speech synthesis when local playback is unavailable.
+- Shows Safety Gate cards for action confirmations.
+- Communicates with backend through REST and WebSocket.
 
-## Quick start
+## Structure
+
+```text
+jarvis-frontend/
+├── electron/
+│   ├── main.cjs       # Electron main process
+│   └── preload.cjs    # Safe preload bridge
+├── src/
+│   ├── assets/        # Jarvis HUD image
+│   ├── lib/           # API client and shared types
+│   ├── styles/        # HUD/global CSS
+│   ├── App.tsx        # Main app UI
+│   └── main.tsx       # React entrypoint
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+## Run
 
 ```bash
-cd jarvis-frontend
 npm install
 npm run start
 ```
 
-The frontend expects the backend at:
+`npm run start` runs Vite and opens the Electron desktop window.
+
+## Backend connection
+
+Default backend:
 
 ```text
 http://127.0.0.1:8765
 ws://127.0.0.1:8765/ws
 ```
 
-Override with:
+Override:
 
 ```bash
 VITE_JARVIS_API_URL=http://127.0.0.1:8765 \
@@ -45,8 +62,6 @@ npm run build
 ```
 
 ## UI states
-
-The GUI renders backend `system_state` events:
 
 - `idle`
 - `listening`

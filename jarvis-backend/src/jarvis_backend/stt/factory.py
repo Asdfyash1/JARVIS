@@ -6,4 +6,6 @@ from jarvis_backend.stt.faster_whisper import FasterWhisperStt
 
 
 def build_stt(config: SttConfig) -> SpeechToText:
+    if config.engine == "vox_fallback":
+        return FasterWhisperStt(config)
     return FasterWhisperStt(config)

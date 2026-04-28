@@ -1,32 +1,48 @@
 # Project Jarvis Backend
 
-Production-oriented async Python backend for a real-time voice AI assistant.
+Async Python AI engine for Project Jarvis.
 
-## Implemented capabilities
+## What it does
 
-- FastAPI WebSocket/REST server.
-- Event-driven runtime with typed event bus.
-- Continuous voice pipeline: microphone frames → VAD → Faster-Whisper STT → LLM → local TTS → audio playback.
-- Local-first STT with Faster-Whisper as the primary speech engine.
-- Local TTS with Piper by default and Coqui as an optional local alternative.
-- NVIDIA API streaming chat completions for reasoning.
-- Persistent SQLite conversation memory.
-- Structured JSON action parsing.
-- Mandatory confirmation gate before actions.
-- System control executor with allowlisted apps/commands.
-- Browser automation by attaching Selenium to an existing Chrome/Edge remote debugging session.
-- WhatsApp Web message preparation flow that stops before sending.
-- Interrupt support while the assistant is speaking or thinking.
+- Serves REST + WebSocket APIs through FastAPI.
+- Runs the Jarvis agent orchestration loop.
+- Maintains SQLite conversation memory.
+- Handles local speech-to-text with Faster-Whisper.
+- Handles local speech output with VoxCPM2 by default.
+- Supports Piper and Coqui fallback TTS adapters.
+- Calls NVIDIA LLM by default, with OpenAI/Gemini provider-ready config.
+- Parses structured action JSON.
+- Requires confirmation before risky actions execute.
+- Automates Chrome/Edge through remote debugging, Selenium, and CDP fallback.
+- Supports app control, website opens, Google search, YouTube search/control, WhatsApp messaging, and allowlisted commands.
 
-## Quick start
+## Structure
+
+```text
+jarvis-backend/
+├── config.yaml
+├── requirements.txt
+├── pyproject.toml
+├── src/jarvis_backend/
+│   ├── actions/      # Browser/system executors + confirmation manager
+│   ├── audio/        # Mic, playback, VAD, voice pipeline
+│   ├── llm/          # LLM client and action parser
+│   ├── memory/       # SQLite memory
+│   ├── server/       # FastAPI app
+│   ├── state/        # Pydantic models/state store
+│   ├── stt/          # Faster-Whisper STT
+│   └── tts/          # VoxCPM/Piper/Coqui TTS
+└── tests/
+```
+
+## Run
 
 ```bash
-cd jarvis-backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 export NVIDIA_API_KEY="your-nvidia-api-key"
-python -m jarvis_backend --config config.yaml
+PYTHONPATH=src python -m jarvis_backend --config config.yaml
 ```
 
 Health check:
@@ -35,48 +51,28 @@ Health check:
 curl http://127.0.0.1:8765/health
 ```
 
-## Local STT: Faster-Whisper
+## Voice
 
-Faster-Whisper is the main STT engine. It auto-tries CUDA first when `device: auto` and falls back to CPU int8 if CUDA initialization fails.
-
-Recommended config:
+STT:
 
 ```yaml
 stt:
   engine: "faster_whisper"
   model_size: "small.en"
-  device: "auto"
-  compute_type: "auto"
 ```
 
-For stronger accuracy, use `medium.en` or `large-v3`. For low-latency CPU, use `base.en` or `small.en`.
-
-## Local TTS: Piper
-
-Install Piper and download a voice:
-
-```bash
-mkdir -p voices
-wget -O voices/en_US-lessac-medium.onnx \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
-wget -O voices/en_US-lessac-medium.onnx.json \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
-```
-
-Set:
+TTS:
 
 ```yaml
 tts:
-  engine: "piper"
-  piper_binary: "piper"
-  voice_model: "./voices/en_US-lessac-medium.onnx"
+  engine: "voxcpm"
+  voxcpm_model: "openbmb/VoxCPM2"
+  voice_profile: "female_thick"
 ```
 
-## Browser debugging setup
+Set `voice_profile: "male_thick"` for the male voice.
 
-Jarvis attaches to your existing browser session through remote debugging.
-
-Linux:
+## Browser setup
 
 Chrome:
 
@@ -84,56 +80,38 @@ Chrome:
 google-chrome --remote-debugging-port=9222 --user-data-dir="$HOME/jarvis-chrome-profile"
 ```
 
-Microsoft Edge:
+Edge:
 
 ```bash
 microsoft-edge --remote-debugging-port=9223 --user-data-dir="$HOME/jarvis-edge-profile"
 ```
 
-Windows:
+## WhatsApp behavior
 
-```powershell
-chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\jarvis-profile"
+Jarvis supports:
+
+```json
+{"action":"whatsapp_message","contact":"U Karthik","message":"hi"}
+{"action":"whatsapp_message","phone_number":"+15551234567","message":"hi"}
+{"action":"whatsapp_message","message":"hi"}
 ```
 
-Then keep:
-
-```yaml
-actions:
-  browser_debugger_address: "127.0.0.1:9222"
-  edge_debugger_address: "127.0.0.1:9223"
-  browser_debugger_addresses:
-    - "127.0.0.1:9222"
-    - "127.0.0.1:9223"
-```
-
-Website opens, Google searches, and YouTube search actions use Selenium when compatible and fall back to direct Chrome/Edge DevTools Protocol tab creation when ChromeDriver does not match the running browser.
+If multiple WhatsApp matches appear for a contact search, Jarvis asks the user which one to use instead of guessing.
 
 ## API
 
-- `POST /api/input` — text input.
-- `POST /api/voice/start` — start continuous microphone pipeline.
-- `POST /api/voice/stop` — stop microphone pipeline.
-- `POST /api/interrupt` — interrupt current speech/response.
-- `POST /api/action/confirm` — approve or deny pending actions.
-- `GET /health` — status.
-- `WS /ws` — realtime events.
+- `POST /api/input`
+- `POST /api/voice/start`
+- `POST /api/voice/stop`
+- `POST /api/voice/transcribe`
+- `POST /api/interrupt`
+- `POST /api/action/confirm`
+- `GET /health`
+- `WS /ws`
 
-## Safety model
-
-The LLM only proposes structured actions. The backend parses, validates, asks for user confirmation, and then executes using allowlisted executors.
-
-Actions requiring confirmation include:
-
-- Opening apps.
-- Opening websites.
-- Searches.
-- Browser automation.
-- WhatsApp message preparation.
-- System commands.
-
-## Run tests
+## Test
 
 ```bash
-python -m pytest
+PYTHONPATH=src python -m compileall src tests
+PYTHONPATH=src python -m pytest
 ```

@@ -20,6 +20,7 @@ vad:
   min_speech_ms: 180
 
 stt:
+  # VoxCPM is a TTS/voice-generation model; Faster-Whisper remains the STT engine.
   engine: "faster_whisper"
   model_size: "small.en"
   device: "auto"
@@ -28,10 +29,19 @@ stt:
   language: "en"
 
 tts:
-  engine: "piper"
+  engine: "voxcpm"
   piper_binary: "piper"
   voice_model: "./voices/en_US-lessac-medium.onnx"
   speaker_id: null
+  voxcpm_model: "openbmb/VoxCPM2"
+  voxcpm_local_dir: null
+  voxcpm_load_denoiser: false
+  voxcpm_cfg_value: 2.0
+  voxcpm_inference_timesteps: 10
+  voice_profile: "female_thick"
+  voice_profiles:
+    female_thick: "A confident adult woman with a deeper, thicker, warm contralto voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+    male_thick: "A confident adult man with a deep, thick, warm baritone voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
 
 llm:
   provider: "nvidia"
@@ -53,7 +63,10 @@ llm:
     For actions, respond only as valid JSON with "spoken_response" and "actions".
     Supported actions: open_app, close_app, focus_window, open_website, google_search, youtube_control, whatsapp_message, system_command.
     For web search requests use {"action":"google_search","query":"..."}.
-    For WhatsApp prepare {"action":"whatsapp_message","contact":"...","message":"..."}.
+    For WhatsApp contacts prepare {"action":"whatsapp_message","contact":"...","message":"..."}.
+    If multiple WhatsApp matches are possible, do not guess; ask the user which exact contact/group to message.
+    For unknown WhatsApp phone numbers prepare {"action":"whatsapp_message","phone_number":"+15551234567","message":"..."}.
+    If the user already opened a WhatsApp chat and asks to send a message there, prepare {"action":"whatsapp_message","message":"..."} without contact or phone_number.
     Never claim an action was executed; the backend asks confirmation and executes it.
 
 memory:

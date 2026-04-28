@@ -50,6 +50,7 @@ class AgentAction(BaseModel):
     command: str | None = None
     args: list[str] = Field(default_factory=list)
     contact: str | None = None
+    phone_number: str | None = None
     message: str | None = None
     youtube_command: Literal["play", "pause", "next", "previous", "search"] | None = None
     requires_confirmation: bool = True

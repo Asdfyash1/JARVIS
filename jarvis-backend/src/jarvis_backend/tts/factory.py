@@ -6,6 +6,10 @@ from jarvis_backend.tts.piper import PiperTts
 
 
 def build_tts(config: TtsConfig, llm_config: LlmConfig) -> TextToSpeech:
+    if config.engine == "voxcpm":
+        from jarvis_backend.tts.voxcpm import VoxCpmTts
+
+        return VoxCpmTts(config)
     if config.engine == "coqui":
         from jarvis_backend.tts.coqui import CoquiTts
 

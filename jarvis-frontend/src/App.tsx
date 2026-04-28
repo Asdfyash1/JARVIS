@@ -28,7 +28,7 @@ export default function App() {
     {
       id: uid(),
       role: 'assistant',
-      content: 'Project Jarvis online. Local Whisper STT and local neural voice are armed.'
+      content: 'Project Jarvis online. Faster-Whisper STT and VoxCPM2 voice are armed.'
     }
   ]);
   const [input, setInput] = useState('');
@@ -238,7 +238,7 @@ export default function App() {
           <span>Speech engine</span>
           <strong>Faster-Whisper local</strong>
           <span>Voice engine</span>
-          <strong>Piper / Coqui local</strong>
+          <strong>VoxCPM2 thick voice</strong>
           <span>Reasoning core</span>
           <strong>NVIDIA API stream</strong>
         </div>
