@@ -20,6 +20,7 @@ vad:
   min_speech_ms: 180
 
 stt:
+  # VoxCPM is a TTS/voice-generation model; Faster-Whisper remains the STT engine.
   engine: "faster_whisper"
   model_size: "small.en"
   device: "auto"
@@ -28,10 +29,19 @@ stt:
   language: "en"
 
 tts:
-  engine: "piper"
+  engine: "voxcpm"
   piper_binary: "piper"
   voice_model: "./voices/en_US-lessac-medium.onnx"
   speaker_id: null
+  voxcpm_model: "openbmb/VoxCPM2"
+  voxcpm_local_dir: null
+  voxcpm_load_denoiser: false
+  voxcpm_cfg_value: 2.0
+  voxcpm_inference_timesteps: 10
+  voice_profile: "female_thick"
+  voice_profiles:
+    female_thick: "A confident adult woman with a deeper, thicker, warm contralto voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+    male_thick: "A confident adult man with a deep, thick, warm baritone voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
 
 llm:
   provider: "nvidia"

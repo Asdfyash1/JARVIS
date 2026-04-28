@@ -6,9 +6,9 @@ Production-oriented async Python backend for a real-time voice AI assistant.
 
 - FastAPI WebSocket/REST server.
 - Event-driven runtime with typed event bus.
-- Continuous voice pipeline: microphone frames → VAD → Faster-Whisper STT → LLM → local TTS → audio playback.
+- Continuous voice pipeline: microphone frames → VAD → Faster-Whisper STT → LLM → VoxCPM/Piper/Coqui TTS → audio playback.
 - Local-first STT with Faster-Whisper as the primary speech engine.
-- Local TTS with Piper by default and Coqui as an optional local alternative.
+- Local TTS with VoxCPM2 voice design by default, plus Piper and Coqui fallback options.
 - NVIDIA API streaming chat completions for reasoning.
 - Persistent SQLite conversation memory.
 - Structured JSON action parsing.
@@ -51,7 +51,27 @@ stt:
 
 For stronger accuracy, use `medium.en` or `large-v3`. For low-latency CPU, use `base.en` or `small.en`.
 
-## Local TTS: Piper
+## Local TTS: VoxCPM2
+
+VoxCPM2 is the default TTS engine. It supports voice design from a natural-language voice description.
+
+```yaml
+tts:
+  engine: "voxcpm"
+  voxcpm_model: "openbmb/VoxCPM2"
+  voxcpm_cfg_value: 2.0
+  voxcpm_inference_timesteps: 10
+  voice_profile: "female_thick"
+  voice_profiles:
+    female_thick: "A confident adult woman with a deeper, thicker, warm contralto voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+    male_thick: "A confident adult man with a deep, thick, warm baritone voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+```
+
+Set `voice_profile: "male_thick"` to switch to the deeper male Jarvis voice.
+
+VoxCPM is a TTS/voice generation project, not a speech-to-text engine in the official docs. Jarvis therefore keeps Faster-Whisper for STT input and uses VoxCPM for TTS output.
+
+## Local TTS fallback: Piper
 
 Install Piper and download a voice:
 

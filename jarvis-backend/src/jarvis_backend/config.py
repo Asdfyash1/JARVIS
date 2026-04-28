@@ -30,7 +30,7 @@ class VadConfig(BaseModel):
 
 
 class SttConfig(BaseModel):
-    engine: Literal["faster_whisper"] = "faster_whisper"
+    engine: Literal["faster_whisper", "vox_fallback"] = "faster_whisper"
     model_size: str = "small.en"
     device: str = "auto"
     compute_type: str = "auto"
@@ -39,10 +39,17 @@ class SttConfig(BaseModel):
 
 
 class TtsConfig(BaseModel):
-    engine: Literal["piper", "coqui"] = "piper"
+    engine: Literal["voxcpm", "piper", "coqui"] = "voxcpm"
     piper_binary: str = "piper"
     voice_model: str = "./voices/en_US-lessac-medium.onnx"
     speaker_id: int | None = None
+    voxcpm_model: str = "openbmb/VoxCPM2"
+    voxcpm_local_dir: str | None = None
+    voxcpm_load_denoiser: bool = False
+    voxcpm_cfg_value: float = 2.0
+    voxcpm_inference_timesteps: int = 10
+    voice_profile: Literal["female_thick", "male_thick"] = "female_thick"
+    voice_profiles: dict[str, str] = Field(default_factory=dict)
 
 
 class LlmConfig(BaseModel):

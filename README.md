@@ -17,7 +17,8 @@ JARVIS/
 - **Desktop app GUI**: `npm run start` launches a separate Electron app window, not just a website.
 - **NVIDIA LLM by default**: uses `NVIDIA_API_KEY` and the NVIDIA OpenAI-compatible endpoint.
 - **Provider-ready LLM layer**: config includes NVIDIA, OpenAI, and Gemini settings so the provider can be switched later.
-- **Local-first speech**: Faster-Whisper STT and Piper/Coqui-style local TTS integration points.
+- **Voice layer**: Faster-Whisper remains the local STT engine; VoxCPM2 is the default local TTS engine for expressive voice output.
+- **Configurable Jarvis voices**: default thick female contralto profile plus selectable thick male baritone profile.
 - **Browser microphone path**: the GUI can record browser mic audio and send it to backend transcription.
 - **Browser speech fallback**: the UI can speak replies with browser speech synthesis when local TTS assets are unavailable.
 - **Conversation memory**: SQLite-backed chat history.
@@ -42,7 +43,8 @@ FastAPI backend
   ├─ BrowserActionExecutor for Chrome/Edge CDP/Selenium actions
   ├─ SystemActionExecutor for allowlisted OS commands/apps
   ├─ Faster-Whisper STT pipeline
-  ├─ Piper/Coqui TTS integration points
+  ├─ VoxCPM2 TTS voice-design pipeline
+  ├─ Piper/Coqui fallback TTS integration points
   └─ SQLite memory store
 ```
 
@@ -112,9 +114,35 @@ Important values:
 
 - `llm.provider`: `nvidia` by default. Can be changed to `openai` or `gemini` after adding the matching API key env var.
 - `llm.api_key_env`: `NVIDIA_API_KEY`
+- `stt.engine`: `faster_whisper`. VoxCPM is a TTS/voice generation model, so STT stays on Faster-Whisper unless another ASR model is added.
+- `tts.engine`: `voxcpm` by default.
+- `tts.voice_profile`: `female_thick` by default; set to `male_thick` for a deeper male voice.
 - `actions.require_confirmation`: `true`
 - `actions.browser_debugger_addresses`: ordered Chrome/Edge remote debugging endpoints.
 - `actions.linux_app_allowlist`: allowed apps Jarvis can open, such as Chrome, Edge, VS Code, and Terminal.
+
+## VoxCPM voice setup
+
+VoxCPM2 is used for expressive TTS voice design:
+
+```yaml
+tts:
+  engine: "voxcpm"
+  voxcpm_model: "openbmb/VoxCPM2"
+  voice_profile: "female_thick"
+  voice_profiles:
+    female_thick: "A confident adult woman with a deeper, thicker, warm contralto voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+    male_thick: "A confident adult man with a deep, thick, warm baritone voice, calm Jarvis assistant tone, clear articulation, cinematic presence"
+```
+
+Switch to male:
+
+```yaml
+tts:
+  voice_profile: "male_thick"
+```
+
+VoxCPM is not an STT/ASR engine in the official docs; Jarvis keeps Faster-Whisper for speech-to-text input and uses VoxCPM for speech output.
 
 ## Testing and validation
 
@@ -141,6 +169,13 @@ Manual browser action test:
 4. Verify the Safety Gate appears.
 5. Click `Approve`.
 6. Verify YouTube opens in Chrome or Edge.
+
+Manual YouTube search test:
+
+1. Ask Jarvis: `search YouTube for Interstellar theme`.
+2. Verify the Safety Gate appears.
+3. Click `Approve`.
+4. Verify Chrome or Edge opens `youtube.com/results?search_query=Interstellar+theme`.
 
 ## Troubleshooting
 

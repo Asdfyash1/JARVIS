@@ -1,6 +1,8 @@
 from jarvis_backend.llm.action_parser import ActionParser
 from jarvis_backend.actions.browser import BrowserActionExecutor
 from jarvis_backend.config import ActionsConfig
+from jarvis_backend.config import TtsConfig
+from jarvis_backend.tts.voxcpm import VoxCpmTts
 
 
 def test_parses_structured_action() -> None:
@@ -28,3 +30,13 @@ def test_browser_debugger_addresses_include_chrome_and_edge() -> None:
     )
 
     assert executor._debugger_addresses == ["127.0.0.1:9222", "127.0.0.1:9223"]
+
+
+def test_voxcpm_voice_profiles_default_to_thick_female_and_allow_male() -> None:
+    female = VoxCpmTts(TtsConfig())
+    male = VoxCpmTts(TtsConfig(voice_profile="male_thick"))
+
+    assert "woman" in female._voice_prompt()
+    assert "thicker" in female._voice_prompt()
+    assert "man" in male._voice_prompt()
+    assert "baritone" in male._voice_prompt()
