@@ -4,9 +4,7 @@
   width: 100vw;
   height: 100dvh;
   min-height: 100dvh;
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  grid-template-rows: 100dvh;
+  display: block;
   overflow: hidden;
   background: #02040a;
 }
@@ -17,16 +15,17 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.25) contrast(1.08) brightness(0.82);
-  opacity: 0.98;
+  object-position: center center;
+  filter: saturate(1.28) contrast(1.08) brightness(0.95);
+  opacity: 1;
 }
 
 .hud-vignette {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 46%, transparent 0 26%, rgba(2, 4, 10, 0.03) 42%, rgba(2, 4, 10, 0.38) 100%),
-    linear-gradient(90deg, rgba(2, 4, 10, 0.32), transparent 22%, transparent 72%, rgba(2, 4, 10, 0.3)),
+    radial-gradient(circle at 50% 47%, transparent 0 33%, rgba(2, 4, 10, 0.04) 52%, rgba(2, 4, 10, 0.3) 100%),
+    linear-gradient(90deg, rgba(2, 4, 10, 0.28), transparent 20%, transparent 76%, rgba(2, 4, 10, 0.2)),
     repeating-linear-gradient(180deg, rgba(125, 211, 252, 0.06), rgba(125, 211, 252, 0.06) 1px, transparent 1px, transparent 5px);
   mix-blend-mode: normal;
 }
@@ -38,23 +37,28 @@
 }
 
 .command-rail {
-  padding: 12px;
-  border-right: 1px solid rgba(125, 211, 252, 0.14);
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.1), rgba(8, 13, 28, 0.04));
-  backdrop-filter: blur(1px);
+  position: absolute;
+  left: 2.4vw;
+  top: 8vh;
+  width: 142px;
+  padding: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.12);
+  border-radius: 24px;
+  background: rgba(2, 6, 23, 0.12);
+  backdrop-filter: blur(0.5px);
   display: flex;
   flex-direction: column;
   gap: 9px;
-  height: 100dvh;
+  height: auto;
   min-height: 0;
   overflow: hidden;
-  box-shadow: 30px 0 80px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 40px rgba(34, 211, 238, 0.04);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
   margin-bottom: 0;
 }
 
@@ -75,14 +79,14 @@
   display: block;
   color: #67e8f9;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
-  font-size: 0.69rem;
+  letter-spacing: 0.18em;
+  font-size: 0.58rem;
   font-weight: 800;
 }
 
 .brand strong {
   display: block;
-  font: 800 1.28rem Orbitron, sans-serif;
+  font: 800 1rem Orbitron, sans-serif;
   letter-spacing: 0.12em;
 }
 
@@ -91,12 +95,12 @@
 .status-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: #c7f9ff;
 }
 
 .connection {
-  padding: 9px 11px;
+  padding: 7px 9px;
   border: 1px solid rgba(125, 211, 252, 0.16);
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.36);
@@ -113,11 +117,11 @@
 .rail-button {
   border: 1px solid rgba(125, 211, 252, 0.18);
   color: #e0faff;
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(15, 23, 42, 0.4);
-  padding: 9px 11px;
+  padding: 7px 9px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   transition: transform 180ms ease, border 180ms ease, box-shadow 180ms ease;
 }
@@ -144,23 +148,23 @@
 .telemetry {
   margin-top: auto;
   display: grid;
-  gap: 8px;
-  padding: 11px;
-  border-radius: 22px;
+  gap: 4px;
+  padding: 9px;
+  border-radius: 16px;
   border: 1px solid rgba(125, 211, 252, 0.15);
   background: rgba(2, 6, 23, 0.24);
 }
 
 .telemetry span {
   color: #7dd3fc;
-  font-size: 0.72rem;
+  font-size: 0.56rem;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.11em;
 }
 
 .telemetry strong {
-  margin-bottom: 8px;
-  font-size: 0.92rem;
+  margin-bottom: 5px;
+  font-size: 0.72rem;
 }
 
 .main-stage {
@@ -168,6 +172,7 @@
   display: block;
   padding: 0;
   height: 100dvh;
+  width: 100vw;
   min-height: 0;
   overflow: hidden;
 }
@@ -205,7 +210,7 @@
 }
 
 .hud-display img {
-  display: block;
+  display: none;
   position: absolute;
   inset: 0;
   width: 100%;
@@ -238,8 +243,8 @@
   left: 50%;
   top: 48%;
   transform: translate(-50%, -50%);
-  width: min(42vw, 560px);
-  height: min(42vw, 560px);
+  width: min(46vw, 640px);
+  height: min(46vw, 640px);
   border-radius: 50%;
   border: 1px solid rgba(165, 243, 252, 0.55);
   box-shadow: 0 0 70px rgba(34, 211, 238, 0.25), inset 0 0 70px rgba(34, 211, 238, 0.08);
@@ -247,7 +252,7 @@
 
 .status-row {
   position: absolute;
-  top: 14px;
+  top: 4.6vh;
   left: 50%;
   z-index: 4;
   transform: translateX(-50%);
@@ -385,17 +390,17 @@
 .waveform {
   position: absolute;
   left: 50%;
-  bottom: 7vh;
+  bottom: 8vh;
   transform: translateX(-50%);
-  height: clamp(78px, 12vh, 118px);
-  width: min(88%, 460px);
+  height: clamp(58px, 9vh, 92px);
+  width: min(54vw, 420px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 20px;
   border-radius: 26px;
-  background: rgba(2, 6, 23, 0.18);
+  background: rgba(2, 6, 23, 0.1);
   border: 1px solid rgba(125, 211, 252, 0.12);
 }
 
@@ -408,10 +413,10 @@
 
 .chat-panel {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  bottom: 14px;
-  width: min(34vw, 460px);
+  top: 8vh;
+  right: 2.4vw;
+  bottom: 6vh;
+  width: min(24vw, 350px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -427,13 +432,13 @@
 
 h1 {
   margin: 6px 0 0;
-  font: 800 1.9rem Orbitron, sans-serif;
+  font: 800 1.55rem Orbitron, sans-serif;
   letter-spacing: 0.04em;
 }
 
 .shield {
   border: 1px solid rgba(34, 211, 238, 0.22);
-  padding: 11px 14px;
+  padding: 8px 10px;
   border-radius: 999px;
   background: rgba(14, 165, 233, 0.1);
   font-weight: 700;
@@ -480,24 +485,19 @@ h1 {
 }
 
 @media (max-width: 1050px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
   .command-rail {
-    min-height: auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    left: 1.5vw;
+    top: 7vh;
+    width: 128px;
   }
 
-  .brand,
-  .connection,
-  .telemetry {
-    grid-column: 1 / -1;
+  .chat-panel {
+    right: 1.5vw;
+    width: min(27vw, 330px);
   }
 
-  .main-stage {
-    grid-template-columns: 1fr;
+  h1 {
+    font-size: 1.25rem;
   }
 }
 
@@ -505,7 +505,7 @@ h1 {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 12px;
-  max-width: 86%;
+  max-width: 92%;
   align-self: flex-start;
 }
 
@@ -534,7 +534,7 @@ h1 {
   line-height: 1.55;
   border-radius: 22px;
   border: 1px solid rgba(125, 211, 252, 0.15);
-  background: rgba(2, 6, 23, 0.34);
+  background: rgba(2, 6, 23, 0.28);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
 }
 
@@ -598,7 +598,7 @@ h1 {
   color: #ecfeff;
   border-radius: 20px;
   padding: 17px 18px;
-  background: rgba(2, 6, 23, 0.38);
+  background: rgba(2, 6, 23, 0.3);
   box-shadow: inset 0 0 26px rgba(34, 211, 238, 0.05);
 }
 
