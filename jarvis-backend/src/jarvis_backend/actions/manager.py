@@ -65,6 +65,8 @@ class ActionManager:
         if action.action == "whatsapp_message":
             if action.phone_number:
                 return f"Prepare WhatsApp message to {action.phone_number}: {action.message!r}?"
+            if not action.contact:
+                return f"Send WhatsApp message in the currently open chat: {action.message!r}?"
             return f"Send WhatsApp message to {action.contact}: {action.message!r}?"
         if action.action == "open_website":
             return f"Open {action.url}?"

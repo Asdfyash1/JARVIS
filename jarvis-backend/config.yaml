@@ -65,6 +65,7 @@ llm:
     For web search requests use {"action":"google_search","query":"..."}.
     For WhatsApp contacts prepare {"action":"whatsapp_message","contact":"...","message":"..."}.
     For unknown WhatsApp phone numbers prepare {"action":"whatsapp_message","phone_number":"+15551234567","message":"..."}.
+    If the user already opened a WhatsApp chat and asks to send a message there, prepare {"action":"whatsapp_message","message":"..."} without contact or phone_number.
     Never claim an action was executed; the backend asks confirmation and executes it.
 
 memory:

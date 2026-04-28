@@ -187,6 +187,15 @@ Manual WhatsApp unknown-number test:
 5. Jarvis opens `wa.me/<phone>?text=hi` in the logged-in browser session.
 6. Review WhatsApp, then press send only if the message and recipient are correct.
 
+Manual current-chat WhatsApp test:
+
+1. Log into WhatsApp Web in the remote-debugging Chrome/Edge profile.
+2. Open the target WhatsApp chat yourself.
+3. Ask Jarvis: `send hi on WhatsApp`.
+4. Verify the Safety Gate says it will send `hi` in the currently open chat.
+5. Click `Approve`.
+6. Jarvis sends `hi` into the open chat.
+
 Chrome does not need to be updated for basic open/search/WhatsApp-link actions because Jarvis falls back to direct Chrome/Edge DevTools Protocol tab creation. If you want Selenium keyboard/mouse automation inside a page, keep ChromeDriver compatible with the installed Chrome/Edge version.
 
 ## Troubleshooting
@@ -225,6 +234,7 @@ Examples:
 - `search Google for latest AI news` → `google_search` → approval required.
 - `message Alex on WhatsApp` → `whatsapp_message` contact flow → approval required before sending.
 - `message +15551234567 on WhatsApp saying hi` → `wa.me` phone-number flow → approval required before opening the prepared message.
+- `send hi on WhatsApp` while a chat is already open → current-chat flow → approval required before sending.
 
 ## Documentation
 

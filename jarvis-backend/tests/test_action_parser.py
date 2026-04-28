@@ -36,6 +36,23 @@ def test_parses_whatsapp_unknown_phone_number_action() -> None:
     assert decision.actions[0].message == "hi"
 
 
+def test_parses_whatsapp_current_chat_action() -> None:
+    decision = ActionParser().parse(
+        """
+        {
+          "spoken_response": "I can send hi in the current WhatsApp chat. Please confirm first.",
+          "actions": [{"action": "whatsapp_message", "message": "hi"}]
+        }
+        """
+    )
+
+    assert len(decision.actions) == 1
+    assert decision.actions[0].action == "whatsapp_message"
+    assert decision.actions[0].contact is None
+    assert decision.actions[0].phone_number is None
+    assert decision.actions[0].message == "hi"
+
+
 def test_browser_debugger_addresses_include_chrome_and_edge() -> None:
     executor = BrowserActionExecutor(
         ActionsConfig(

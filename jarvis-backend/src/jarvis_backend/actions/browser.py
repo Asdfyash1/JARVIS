@@ -115,9 +115,9 @@ class BrowserActionExecutor(ActionExecutor):
             return ActionResult(action_id=action.id, ok=False, message="Missing message")
         if action.phone_number:
             return await self._whatsapp_phone_message(action)
-        if not action.contact:
-            return ActionResult(action_id=action.id, ok=False, message="Missing contact or phone_number")
         driver = await self._with_driver()
+        if not action.contact:
+            return await self._whatsapp_current_chat_message(action, driver)
         await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
         await asyncio.sleep(2)
         search_boxes = await asyncio.to_thread(
@@ -144,6 +144,29 @@ class BrowserActionExecutor(ActionExecutor):
             action_id=action.id,
             ok=True,
             message="Sent WhatsApp message after explicit confirmation",
+        )
+
+    async def _whatsapp_current_chat_message(self, action: AgentAction, driver: webdriver.Chrome) -> ActionResult:
+        if "web.whatsapp.com" not in driver.current_url:
+            await asyncio.to_thread(driver.get, "https://web.whatsapp.com")
+            return ActionResult(
+                action_id=action.id,
+                ok=False,
+                message="Open the WhatsApp chat first, then ask Jarvis to send the message",
+            )
+        boxes = await asyncio.to_thread(
+            driver.find_elements,
+            By.CSS_SELECTOR,
+            "div[contenteditable='true'][role='textbox']",
+        )
+        if not boxes:
+            return ActionResult(action_id=action.id, ok=False, message="WhatsApp message box not available")
+        await asyncio.to_thread(boxes[-1].send_keys, action.message)
+        await asyncio.to_thread(boxes[-1].send_keys, Keys.ENTER)
+        return ActionResult(
+            action_id=action.id,
+            ok=True,
+            message="Sent WhatsApp message in the currently open chat after explicit confirmation",
         )
 
     async def _whatsapp_phone_message(self, action: AgentAction) -> ActionResult:

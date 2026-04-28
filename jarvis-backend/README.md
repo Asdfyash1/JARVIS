@@ -147,6 +147,14 @@ For unknown phone numbers:
 
 Unknown-number messages open `https://wa.me/<phone>?text=<message>` in the logged-in Chrome/Edge profile after approval. Review the recipient and message before pressing send in WhatsApp.
 
+For the currently open WhatsApp chat:
+
+```json
+{"action":"whatsapp_message","message":"hi"}
+```
+
+Open the target chat manually first, then ask Jarvis to send the message. Jarvis still asks for confirmation before pressing Enter in that open chat.
+
 ## API
 
 - `POST /api/input` — text input.
